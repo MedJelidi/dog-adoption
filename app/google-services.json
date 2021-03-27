@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "762317032447",
+    "project_id": "dogadoption-94cad",
+    "storage_bucket": "dogadoption-94cad.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:762317032447:android:5ebfb6c8daddf4610635ca",
+        "android_client_info": {
+          "package_name": "tn.rabini.dogadoption"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "762317032447-4uj31rus8ivsf8ro7a17etam59qce2sv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB8LhtnQuRJtmkfXqy-B9MlsjlcmTqpNgY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "762317032447-4uj31rus8ivsf8ro7a17etam59qce2sv.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
