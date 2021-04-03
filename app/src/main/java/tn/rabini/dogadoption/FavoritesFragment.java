@@ -15,8 +15,6 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
-import tn.rabini.dogadoption.models.Dog;
-
 public class FavoritesFragment extends Fragment {
 
     private RecyclerView dogList;
@@ -52,8 +50,8 @@ public class FavoritesFragment extends Fragment {
         spinner = v.findViewById(R.id.spinner);
         dogList = v.findViewById(R.id.dogList);
         dogList.setLayoutManager(new LinearLayoutManager(requireContext()));
-        FirebaseRecyclerOptions<Dog> options = new FirebaseRecyclerOptions.Builder<Dog>()
-                .setQuery(ref, Dog.class)
+        FirebaseRecyclerOptions<String> options = new FirebaseRecyclerOptions.Builder<String>()
+                .setQuery(ref, String.class)
                 .build();
         likedDogAdapter = new LikedDogAdapter(options, requireContext()) {
             @Override

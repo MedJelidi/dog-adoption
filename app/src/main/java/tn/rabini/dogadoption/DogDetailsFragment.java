@@ -134,14 +134,11 @@ public class DogDetailsFragment extends Fragment {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot snapshot) {
                             for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                                Dog dog = dataSnapshot.getValue(Dog.class);
-                                if (dog != null) {
-                                    if (dog.getId().equals(id)) {
-                                        likeButton.setBackgroundResource
-                                                (R.drawable.ic_baseline_favorite_24);
-                                        likeButton.setVisibility(View.VISIBLE);
-                                        return;
-                                    }
+                                if (dataSnapshot.getValue(String.class).equals(id)) {
+                                    likeButton.setBackgroundResource
+                                            (R.drawable.ic_baseline_favorite_24);
+                                    likeButton.setVisibility(View.VISIBLE);
+                                    return;
                                 }
                             }
                             likeButton.setBackgroundResource
@@ -169,52 +166,37 @@ public class DogDetailsFragment extends Fragment {
                     .getDrawable(getResources(), R.drawable.ic_baseline_favorite_border_24
                             , null).getConstantState())) {
                 DatabaseReference userRef = FirebaseDatabase.getInstance()
-                        .getReference("Users").child(FirebaseAuth.getInstance()
-                                .getCurrentUser().getUid());
-                DatabaseReference dogRef = FirebaseDatabase.getInstance()
-                        .getReference("Dogs").child(id);
-                dogRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                        .getReference("Users")
+                        .child(FirebaseAuth.getInstance().getCurrentUser().getUid());
+                userRef.addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        Dog dog = snapshot.getValue(Dog.class);
-                        if (dog != null) {
-                            userRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                                @Override
-                                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                    User user = snapshot.getValue(User.class);
-                                    if (user != null) {
-                                        ArrayList<Dog> likedDogs = new ArrayList<>();
-                                        if (user.getLikedDogs() != null) {
-                                            likedDogs = user.getLikedDogs();
+                        User user = snapshot.getValue(User.class);
+                        if (user != null) {
+                            ArrayList<String> likedDogs = new ArrayList<>();
+                            if (user.getLikedDogs() != null) {
+                                likedDogs = user.getLikedDogs();
+                            }
+                            likedDogs.add(id);
+                            user.setLikedDogs(likedDogs);
+                            Map<String, Object> userUpdates = new HashMap<>();
+                            userUpdates.put("likedDogs", user.getLikedDogs());
+                            FirebaseDatabase.getInstance()
+                                    .getReference("Users")
+                                    .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                                    .updateChildren(userUpdates, (error, ref) -> {
+                                        if (error != null) {
+                                            Snackbar.make(getActivity().findViewById(R.id.coordinatorLayout), error.getMessage(), Snackbar.LENGTH_LONG)
+                                                    .setAnchorView(getActivity().findViewById(R.id.bottom_navigation))
+                                                    .show();
+                                        } else {
+                                            Snackbar.make(getActivity().findViewById(R.id.coordinatorLayout), "Dog added to favorites!", Snackbar.LENGTH_SHORT)
+                                                    .setAnchorView(getActivity().findViewById(R.id.bottom_navigation))
+                                                    .show();
+                                            view.setBackgroundResource(R.drawable.ic_baseline_favorite_24);
                                         }
-                                        likedDogs.add(dog);
-                                        user.setLikedDogs(likedDogs);
-                                        Map<String, Object> userUpdates = new HashMap<>();
-                                        userUpdates.put("likedDogs", user.getLikedDogs());
-                                        FirebaseDatabase.getInstance()
-                                                .getReference("Users")
-                                                .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
-                                                .updateChildren(userUpdates, (error, ref) -> {
-                                                    if (error != null) {
-                                                        Snackbar.make(getActivity().findViewById(R.id.coordinatorLayout), error.getMessage(), Snackbar.LENGTH_LONG)
-                                                                .setAnchorView(getActivity().findViewById(R.id.bottom_navigation))
-                                                                .show();
-                                                    } else {
-                                                        Snackbar.make(getActivity().findViewById(R.id.coordinatorLayout), "Dog added to favorites!", Snackbar.LENGTH_SHORT)
-                                                                .setAnchorView(getActivity().findViewById(R.id.bottom_navigation))
-                                                                .show();
-                                                        view.setBackgroundResource(R.drawable.ic_baseline_favorite_24);
-                                                    }
-                                                    view.setEnabled(true);
-                                                });
-                                    }
-                                }
-
-                                @Override
-                                public void onCancelled(@NonNull DatabaseError error) {
-                                    view.setEnabled(true);
-                                }
-                            });
+                                        view.setEnabled(true);
+                                    });
                         }
                     }
 
@@ -225,54 +207,40 @@ public class DogDetailsFragment extends Fragment {
                 });
             } else {
                 DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("Users").child(FirebaseAuth.getInstance().getCurrentUser().getUid());
-                DatabaseReference dogRef = FirebaseDatabase.getInstance().getReference("Dogs").child(id);
-                dogRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                userRef.addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        Dog dog = snapshot.getValue(Dog.class);
-                        if (dog != null) {
-                            userRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                                @Override
-                                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                    User user = snapshot.getValue(User.class);
-                                    if (user != null) {
-                                        ArrayList<Dog> likedDogs;
-                                        if (user.getLikedDogs() != null) {
-                                            likedDogs = user.getLikedDogs();
-                                            for (int i = 0; i < likedDogs.size(); i++) {
-                                                if (likedDogs.get(i).getId().equals(dog.getId())) {
-                                                    likedDogs.remove(i);
-                                                    break;
-                                                }
-                                            }
-                                            user.setLikedDogs(likedDogs);
-                                            Map<String, Object> userUpdates = new HashMap<>();
-                                            userUpdates.put("likedDogs", user.getLikedDogs());
-                                            FirebaseDatabase.getInstance()
-                                                    .getReference("Users")
-                                                    .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
-                                                    .updateChildren(userUpdates, (error, ref) -> {
-                                                        if (error != null) {
-                                                            Snackbar.make(getActivity().findViewById(R.id.coordinatorLayout), error.getMessage(), Snackbar.LENGTH_LONG)
-                                                                    .setAnchorView(getActivity().findViewById(R.id.bottom_navigation))
-                                                                    .show();
-                                                        } else {
-                                                            Snackbar.make(getActivity().findViewById(R.id.coordinatorLayout), "Dog removed from favorites!", Snackbar.LENGTH_SHORT)
-                                                                    .setAnchorView(getActivity().findViewById(R.id.bottom_navigation))
-                                                                    .show();
-                                                            view.setBackgroundResource(R.drawable.ic_baseline_favorite_border_24);
-                                                        }
-                                                        view.setEnabled(true);
-                                                    });
-                                        }
+                        User user = snapshot.getValue(User.class);
+                        if (user != null) {
+                            ArrayList<String> likedDogs;
+                            if (user.getLikedDogs() != null) {
+                                likedDogs = user.getLikedDogs();
+                                for (int i = 0; i < likedDogs.size(); i++) {
+                                    if (likedDogs.get(i).equals(id)) {
+                                        likedDogs.remove(i);
+                                        break;
                                     }
                                 }
-
-                                @Override
-                                public void onCancelled(@NonNull DatabaseError error) {
-                                    view.setEnabled(true);
-                                }
-                            });
+                                user.setLikedDogs(likedDogs);
+                                Map<String, Object> userUpdates = new HashMap<>();
+                                userUpdates.put("likedDogs", user.getLikedDogs());
+                                FirebaseDatabase.getInstance()
+                                        .getReference("Users")
+                                        .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                                        .updateChildren(userUpdates, (error, ref) -> {
+                                            if (error != null) {
+                                                Snackbar.make(getActivity().findViewById(R.id.coordinatorLayout), error.getMessage(), Snackbar.LENGTH_LONG)
+                                                        .setAnchorView(getActivity().findViewById(R.id.bottom_navigation))
+                                                        .show();
+                                            } else {
+                                                Snackbar.make(getActivity().findViewById(R.id.coordinatorLayout), "Dog removed from favorites!", Snackbar.LENGTH_SHORT)
+                                                        .setAnchorView(getActivity().findViewById(R.id.bottom_navigation))
+                                                        .show();
+                                                view.setBackgroundResource(R.drawable.ic_baseline_favorite_border_24);
+                                            }
+                                            view.setEnabled(true);
+                                        });
+                            }
                         }
                     }
 

@@ -4,7 +4,8 @@ import java.util.ArrayList;
 
 public class User {
     private String username, email, phone, picture;
-    private ArrayList<Dog> dogs, likedDogs;
+    private ArrayList<Dog> dogs;
+    private ArrayList<String> likedDogs;
 
     public User() {}
 
@@ -57,11 +58,11 @@ public class User {
         this.dogs = dogs;
     }
 
-    public ArrayList<Dog> getLikedDogs() {
+    public ArrayList<String> getLikedDogs() {
         return likedDogs;
     }
 
-    public void setLikedDogs(ArrayList<Dog> likedDogs) {
+    public void setLikedDogs(ArrayList<String> likedDogs) {
         this.likedDogs = likedDogs;
     }
 
@@ -79,13 +80,13 @@ public class User {
         return false;
     }
 
-    public void likeDog(Dog e) {
+    public void likeDog(String  e) {
         this.likedDogs.add(e);
     }
 
     public boolean unlikeDog(String id) {
-        for (Dog e: this.likedDogs) {
-            if (e.getId().equals(id)) {
+        for (String e: this.likedDogs) {
+            if (e.equals(id)) {
                 this.likedDogs.remove(e);
                 return true;
             }

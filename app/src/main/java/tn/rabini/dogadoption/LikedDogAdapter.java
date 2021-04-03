@@ -13,7 +13,6 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.swiperefreshlayout.widget.CircularProgressDrawable;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
@@ -33,88 +32,107 @@ import java.util.Map;
 import tn.rabini.dogadoption.models.Dog;
 import tn.rabini.dogadoption.models.User;
 
-public class LikedDogAdapter extends FirebaseRecyclerAdapter<Dog, LikedDogAdapter.LikedDogViewHolder> {
+public class LikedDogAdapter extends FirebaseRecyclerAdapter<String, LikedDogAdapter.LikedDogViewHolder> {
 
     private final Context context;
 
-    public LikedDogAdapter(@NonNull FirebaseRecyclerOptions<Dog> options, Context context) {
+    public LikedDogAdapter(@NonNull FirebaseRecyclerOptions<String> options, Context context) {
         super(options);
         this.context = context;
     }
 
     @Override
-    protected void onBindViewHolder(@NonNull LikedDogAdapter.LikedDogViewHolder holder, int position, @NonNull Dog model) {
-        CircularProgressDrawable circularProgressDrawable = new CircularProgressDrawable(context);
-        circularProgressDrawable.setStrokeWidth(5f);
-        circularProgressDrawable.setCenterRadius(30f);
-        circularProgressDrawable.start();
-        Glide.with(context)
-                .load(model.getImage())
-                .fitCenter()
-                .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .placeholder(circularProgressDrawable)
-                .error(R.drawable.ic_baseline_error_24)
-                .into(holder.dogImage);
+    protected void onBindViewHolder(@NonNull LikedDogAdapter.LikedDogViewHolder holder, int position, @NonNull String model) {
 
-        holder.dogName.setText(model.getName());
-        holder.itemView.setOnClickListener(view -> {
-            Bundle flipBundle = new Bundle();
-            flipBundle.putString("flip", "ToDogDetails");
-            flipBundle.putString("id", model.getId());
-            flipBundle.putString("image", model.getImage());
-            flipBundle.putString("name", model.getName());
-            flipBundle.putString("race", model.getRace());
-            flipBundle.putString("age", model.getAge());
-            flipBundle.putString("gender", model.getGender());
-            flipBundle.putString("description", model.getDescription());
-            flipBundle.putBoolean("ready", model.isReady());
-            flipBundle.putString("location", model.getLocation());
-            flipBundle.putString("owner", model.getOwner());
-            ((AppCompatActivity) context).getSupportFragmentManager().setFragmentResult("flipResult", flipBundle);
-        });
+        FirebaseDatabase.getInstance()
+                .getReference("Dogs")
+                .child(model)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        Dog dog = snapshot.getValue(Dog.class);
+                        if (dog != null) {
+                            Glide.with(context)
+                                    .load(dog.getImage())
+                                    .fitCenter()
+                                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                                    .error(R.drawable.ic_baseline_error_24)
+                                    .into(holder.dogImage);
+
+                            holder.dogName.setText(dog.getName());
+                            holder.itemView.setOnClickListener(view -> {
+                                Bundle flipBundle = new Bundle();
+                                flipBundle.putString("flip", "ToDogDetails");
+                                flipBundle.putString("id", dog.getId());
+                                flipBundle.putString("image", dog.getImage());
+                                flipBundle.putString("name", dog.getName());
+                                flipBundle.putString("race", dog.getRace());
+                                flipBundle.putString("age", dog.getAge());
+                                flipBundle.putString("gender", dog.getGender());
+                                flipBundle.putString("description", dog.getDescription());
+                                flipBundle.putBoolean("ready", dog.isReady());
+                                flipBundle.putString("location", dog.getLocation());
+                                flipBundle.putString("owner", dog.getOwner());
+                                ((AppCompatActivity) context).getSupportFragmentManager().setFragmentResult("flipResult", flipBundle);
+                            });
+                        } else {
+                            FirebaseDatabase.getInstance()
+                                    .getReference("Users")
+                                    .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                                    .child("likedDogs")
+                                    .addListenerForSingleValueEvent(new ValueEventListener() {
+                                        @Override
+                                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                            for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                                                if (dataSnapshot.getValue(String.class).equals(model)) {
+                                                    dataSnapshot.getRef().removeValue();
+                                                    return;
+                                                }
+                                            }
+                                        }
+
+                                        @Override
+                                        public void onCancelled(@NonNull DatabaseError error) {
+
+                                        }
+                                    });
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
 
         holder.unlikeButton.setOnClickListener(view -> {
             DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("Users").child(FirebaseAuth.getInstance().getCurrentUser().getUid());
-            DatabaseReference dogRef = FirebaseDatabase.getInstance().getReference("Dogs").child(model.getId());
-            dogRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            userRef.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    Dog dog = snapshot.getValue(Dog.class);
-                    if (dog != null) {
-                        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                User user = snapshot.getValue(User.class);
-                                if (user != null) {
-                                    ArrayList<Dog> likedDogs;
-                                    if (user.getLikedDogs() != null) {
-                                        likedDogs = user.getLikedDogs();
-                                        for (int i = 0; i < likedDogs.size(); i++) {
-                                            if (likedDogs.get(i).getId().equals(dog.getId())) {
-                                                likedDogs.remove(i);
-                                                break;
-                                            }
-                                        }
-                                        user.setLikedDogs(likedDogs);
-                                        Map<String, Object> userUpdates = new HashMap<>();
-                                        userUpdates.put("likedDogs", user.getLikedDogs());
-                                        FirebaseDatabase.getInstance()
-                                                .getReference("Users")
-                                                .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
-                                                .updateChildren(userUpdates, (error, ref) -> {
-                                                    if (error != null) {
-                                                        Toast.makeText(context, error.getMessage(), Toast.LENGTH_LONG).show();
-                                                    }
-                                                });
-                                    }
+                    User user = snapshot.getValue(User.class);
+                    if (user != null) {
+                        ArrayList<String> likedDogs;
+                        if (user.getLikedDogs() != null) {
+                            likedDogs = user.getLikedDogs();
+                            for (int i = 0; i < likedDogs.size(); i++) {
+                                if (likedDogs.get(i).equals(model)) {
+                                    likedDogs.remove(i);
+                                    break;
                                 }
                             }
-
-                            @Override
-                            public void onCancelled(@NonNull DatabaseError error) {
-
-                            }
-                        });
+                            user.setLikedDogs(likedDogs);
+                            Map<String, Object> userUpdates = new HashMap<>();
+                            userUpdates.put("likedDogs", user.getLikedDogs());
+                            FirebaseDatabase.getInstance()
+                                    .getReference("Users")
+                                    .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                                    .updateChildren(userUpdates, (error, ref) -> {
+                                        if (error != null) {
+                                            Toast.makeText(context, error.getMessage(), Toast.LENGTH_LONG).show();
+                                        }
+                                    });
+                        }
                     }
                 }
 
