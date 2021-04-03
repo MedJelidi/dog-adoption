@@ -6,47 +6,105 @@
     android:layout_height="match_parent"
     tools:context=".AddDogFragment">
 
-
     <TextView
         android:id="@+id/addDogHeader"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@id/nameLayout"
+        android:layout_above="@id/nameGenderLayout"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="15dp"
-        android:layout_marginBottom="15dp"
+        android:layout_marginBottom="25dp"
         android:text="@string/add_dog"
         android:textColor="@color/black"
         android:textSize="32sp"
         app:fontFamily="@font/roboto_bold" />
 
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/nameLayout"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/nameGenderLayout"
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/raceAgeLayout"
+        android:layout_centerHorizontal="true"
+        android:orientation="horizontal">
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/nameLayout"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="10dp"
+            android:layout_marginRight="10dp"
+            app:endIconMode="clear_text"
+            app:errorEnabled="true">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/nameInput"
+                android:layout_width="125dp"
+                android:layout_height="wrap_content"
+                android:hint="@string/name" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.tiper.MaterialSpinner
+            android:id="@+id/genderLayout"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="115dp"
+            android:layout_height="wrap_content"
+            android:hint="@string/male" />
+
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/raceAgeLayout"
+        android:layout_width="250dp"
         android:layout_height="wrap_content"
         android:layout_above="@id/descriptionLayout"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="15dp"
-        android:layout_marginBottom="10dp"
-        app:endIconMode="clear_text"
-        app:errorEnabled="true">
+        android:orientation="horizontal">
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/nameInput"
-            android:layout_width="250dp"
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/raceLayout"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:hint="@string/name" />
+            android:layout_marginEnd="10dp"
+            android:layout_marginRight="10dp"
+            app:endIconMode="clear_text"
+            app:errorEnabled="true">
 
-    </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/raceInput"
+                android:layout_width="125dp"
+                android:layout_height="wrap_content"
+                android:hint="@string/race" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/ageLayout"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:endIconMode="clear_text"
+            app:errorEnabled="true">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/ageInput"
+                android:layout_width="115dp"
+                android:layout_height="wrap_content"
+                android:hint="@string/age_months"
+                android:inputType="number" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+    </LinearLayout>
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/descriptionLayout"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/locationLayout"
-        android:layout_centerHorizontal="true"
+        android:layout_centerInParent="true"
 
         app:errorEnabled="true">
 
@@ -63,9 +121,8 @@
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:layout_marginTop="10dp"
-
+        android:layout_below="@id/descriptionLayout"
+        android:layout_centerHorizontal="true"
         app:errorEnabled="true">
 
         <com.google.android.material.textfield.TextInputEditText
@@ -83,7 +140,6 @@
         android:layout_height="65dp"
         android:layout_below="@+id/locationLayout"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="10dp"
 
         android:text="@string/add_an_image"
         app:icon="@drawable/ic_baseline_add_24"
@@ -93,12 +149,11 @@
         android:id="@+id/readySwitch"
         android:layout_width="250dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="15dp"
-        android:layout_centerHorizontal="true"
         android:layout_below="@id/imagePickerButton"
+        android:layout_centerHorizontal="true"
         android:fontFamily="@font/roboto_regular"
-        android:textColor="@color/design_default_color_primary"
-        android:text="@string/ready" />
+        android:text="@string/ready"
+        android:textColor="@color/design_default_color_primary" />
 
     <LinearLayout
         android:id="@+id/submitCancelLayout"
@@ -106,8 +161,6 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/readySwitch"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="20dp"
-        android:layout_marginBottom="15dp"
         android:orientation="horizontal">
 
         <com.google.android.material.button.MaterialButton
@@ -144,7 +197,7 @@
         android:id="@+id/spinner"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/submitCancelLayout"
+        android:layout_below="@+id/readySwitch"
         android:layout_centerHorizontal="true"
         android:indeterminate="true"
         android:visibility="invisible" />

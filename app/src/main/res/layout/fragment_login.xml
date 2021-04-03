@@ -93,11 +93,39 @@
         android:layout_marginBottom="25dp"
         android:text="@string/sign_in" />
 
-    <TextView
-        android:id="@+id/errorView"
+    <LinearLayout
+        android:id="@+id/resetLayout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/signInButton"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="25dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="5dp"
+            android:layout_marginRight="5dp"
+            android:fontFamily="@font/roboto_light"
+            android:text="@string/forgot_your_password"
+            android:textColor="@color/black" />
+
+        <TextView
+            android:id="@+id/resetLink"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/roboto_light"
+            android:text="@string/reset_password"
+            android:textColor="@color/link" />
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/errorView"
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/resetLayout"
         android:layout_centerHorizontal="true"
         android:textColor="@color/red"
         android:visibility="invisible" />
@@ -106,7 +134,7 @@
         android:id="@+id/spinner"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/signInButton"
+        android:layout_below="@+id/resetLayout"
         android:layout_centerHorizontal="true"
         android:indeterminate="true"
         android:visibility="invisible" />

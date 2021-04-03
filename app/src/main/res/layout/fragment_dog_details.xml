@@ -1,19 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_margin="20dp"
     android:scrollbars="vertical"
     tools:context=".DogDetailsFragment">
-
-
-    <ImageView
-        android:id="@+id/arrowBack"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:contentDescription="@string/back_arrow"
-        android:src="@drawable/ic_baseline_arrow_back_24" />
 
     <ImageView
         android:id="@+id/dogImage"
@@ -24,81 +17,168 @@
         android:adjustViewBounds="true"
         android:contentDescription="@string/dog_picture"
         android:maxWidth="250dp"
-        android:maxHeight="250dp"
-        android:scaleType="fitCenter"
-        android:src="@drawable/maxresdefault" />
+        android:maxHeight="150dp"
+        android:scaleType="fitCenter" />
 
-    <TextView
-        android:id="@+id/dogName"
+    <LinearLayout
+        android:id="@+id/dogNameAge"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/dogImage"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="25dp"
-        android:fontFamily="@font/roboto_bold"
-        android:text="Max"
-        android:textColor="@color/black"
-        android:textSize="32sp" />
+        android:layout_marginTop="20dp"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/dogName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:fontFamily="@font/roboto_bold"
+            android:textColor="@color/black"
+            android:textSize="32sp" />
+
+        <TextView
+            android:id="@+id/dogAge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:textSize="16sp" />
+
+    </LinearLayout>
 
     <TextView
         android:id="@+id/dogDescription"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/dogName"
+        android:layout_below="@+id/dogNameAge"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="25dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="20dp"
         android:fontFamily="@font/roboto_light"
         android:maxLines="4"
         android:scrollbars="vertical"
-        android:text="Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?"
         android:textColor="@color/black"
         android:textSize="16sp" />
 
-    <TextView
-        android:id="@+id/dogLocation"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/specificDetails"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/dogDescription"
-        android:layout_marginTop="25dp"
-        android:fontFamily="@font/roboto_regular"
-        android:text="Location: Kram"
-        android:textColor="@color/black"
-        android:textSize="21sp" />
+        android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/dogOwner"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/dogLocation"
-        android:layout_marginTop="15dp"
-        android:fontFamily="@font/roboto_light"
-        android:text="Owner: medjelidi"
-        android:textColor="@color/black"
-        android:textSize="16sp" />
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0.1dp"
+            android:background="#8E8E8E" />
 
-    <TextView
-        android:id="@+id/dogContact"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/dogLocation"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentRight="true"
-        android:layout_marginTop="15dp"
-        android:fontFamily="@font/roboto_light"
-        android:text="Contact: 28249424"
-        android:textColor="@color/black"
-        android:textSize="16sp" />
+        <TextView
+            android:id="@+id/dogRace"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:drawablePadding="10dp"
+            android:fontFamily="@font/roboto_light"
+            android:textColor="@color/black"
+            android:textSize="16sp"
+            app:drawableLeftCompat="@drawable/baseline_pets_24"
+            app:drawableStartCompat="@drawable/baseline_pets_24" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0.1dp"
+            android:background="#8E8E8E" />
+
+        <TextView
+            android:id="@+id/dogLocation"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:drawablePadding="10dp"
+            android:fontFamily="@font/roboto_light"
+            android:textColor="@color/black"
+            android:textSize="16sp"
+            app:drawableLeftCompat="@drawable/baseline_room_24"
+            app:drawableStartCompat="@drawable/baseline_room_24" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0.1dp"
+            android:background="#8E8E8E" />
+
+        <TextView
+            android:id="@+id/dogOwner"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:drawablePadding="10dp"
+            android:fontFamily="@font/roboto_light"
+            android:textColor="@color/black"
+            android:textSize="16sp"
+            app:drawableLeftCompat="@drawable/baseline_account_circle_24"
+            app:drawableStartCompat="@drawable/baseline_account_circle_24" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0.1dp"
+            android:background="#8E8E8E" />
+
+        <TextView
+            android:id="@+id/dogContact"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:drawablePadding="10dp"
+            android:fontFamily="@font/roboto_light"
+            android:textColor="@color/link"
+            android:textSize="16sp"
+            app:drawableLeftCompat="@drawable/baseline_call_24"
+            app:drawableStartCompat="@drawable/baseline_call_24" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0.1dp"
+            android:background="#8E8E8E" />
+
+        <TextView
+            android:id="@+id/dogReady"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:drawablePadding="10dp"
+            android:fontFamily="@font/roboto_light"
+            android:textColor="@color/black"
+            android:textSize="16sp" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0.1dp"
+            android:background="#8E8E8E" />
+
+    </LinearLayout>
+
 
     <ToggleButton
-        android:id="@+id/toggleButton"
+        android:id="@+id/likeButton"
         android:layout_width="30dp"
         android:layout_height="30dp"
-        android:layout_below="@+id/dogContact"
+        android:layout_below="@+id/specificDetails"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="20dp"
-        android:background="@drawable/ic_baseline_favorite_border_24"
         android:text="@string/favorite"
         android:textOff=""
-        android:textOn="" />
+        android:textOn=""
+        android:visibility="gone" />
 
 </RelativeLayout>

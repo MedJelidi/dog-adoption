@@ -1,30 +1,24 @@
 package tn.rabini.dogadoption;
 
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-
 import android.text.TextUtils;
+import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.fragment.app.Fragment;
+
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-
-import java.io.IOException;
 
 public class LoginFragment extends Fragment {
 
@@ -32,11 +26,13 @@ public class LoginFragment extends Fragment {
     private TextInputLayout emailLayout, passwordLayout;
     private TextInputEditText emailInput, passwordInput;
     private CircularProgressIndicator spinner;
-    private View v;
-    private SharedPreferences sharedPreferences;
-    private final String SP_KEY = "PROFILE_INFO";
     private FirebaseAuth mAuth;
+    private Button signInButton;
 
+
+    public LoginFragment() {
+        // Required empty public constructor
+    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -44,48 +40,37 @@ public class LoginFragment extends Fragment {
         mAuth = FirebaseAuth.getInstance();
     }
 
-    public LoginFragment() {
-        // Required empty public constructor
-    }
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        v = inflater.inflate(R.layout.fragment_login, container, false);
-        emailLayout = (TextInputLayout) v.findViewById(R.id.emailLayout);
-        passwordLayout = (TextInputLayout) v.findViewById(R.id.passwordLoginLayout);
-        emailInput = (TextInputEditText) v.findViewById(R.id.emailInput);
-        passwordInput = (TextInputEditText) v.findViewById(R.id.passwordLoginInput);
-        errorView = (TextView) v.findViewById(R.id.errorView);
-        spinner = (CircularProgressIndicator) v.findViewById(R.id.spinner);
+        View v = inflater.inflate(R.layout.fragment_login, container, false);
+        emailLayout = v.findViewById(R.id.emailLayout);
+        passwordLayout = v.findViewById(R.id.passwordLoginLayout);
+        emailInput = v.findViewById(R.id.emailInput);
+        passwordInput = v.findViewById(R.id.passwordLoginInput);
+        errorView = v.findViewById(R.id.errorView);
+        spinner = v.findViewById(R.id.spinner);
+        TextView resetLink = v.findViewById(R.id.resetLink);
 
-        TextView signUpLink = (TextView) v.findViewById(R.id.signUpLink);
-        signUpLink.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                switchTo("ToRegister");
-            }
-        });
+        resetLink.setOnClickListener(view -> resetPassword());
+
+        TextView signUpLink = v.findViewById(R.id.signUpLink);
+        signUpLink.setOnClickListener(view -> switchTo("ToRegister"));
 
 
-        Button signIn = (Button) v.findViewById(R.id.signInButton);
-        signIn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                onSignIn();
-            }
-        });
+        signInButton = v.findViewById(R.id.signInButton);
+        signInButton.setOnClickListener(view -> onSignIn());
 
         return v;
     }
 
     private void onSignIn() {
+        signInButton.setEnabled(false);
         errorView.setVisibility(View.INVISIBLE);
         String emailValue = emailInput.getText().toString();
         String passwordValue = passwordInput.getText().toString();
-        if (TextUtils.isEmpty(emailValue) || TextUtils.isEmpty(passwordValue) || passwordValue.length() < 6) {
-
+        if (TextUtils.isEmpty(emailValue) || TextUtils.isEmpty(passwordValue)) {
             if (TextUtils.isEmpty(emailValue)) {
                 emailLayout.setError(getString(R.string.field_empty));
             }
@@ -94,9 +79,8 @@ public class LoginFragment extends Fragment {
                 passwordLayout.setError(getString(R.string.field_empty));
             }
 
-            if (passwordValue.length() < 6) {
-                passwordLayout.setError(getString(R.string.password_short));
-            }
+            signInButton.setEnabled(true);
+
             return;
         }
 
@@ -105,43 +89,55 @@ public class LoginFragment extends Fragment {
         passwordLayout.setError(null);
         errorView.setVisibility(View.INVISIBLE);
 
-        mAuth.signInWithEmailAndPassword(emailValue, passwordValue).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-            @Override
-            public void onComplete(@NonNull Task<AuthResult> task) {
-                if (task.isSuccessful()) {
-                    switchTo("ToProfile");
-                } else {
-                    spinner.setVisibility(View.INVISIBLE);
-                    Toast.makeText(requireContext(), "Error occurred.", Toast.LENGTH_SHORT).show();
-                }
-            }
+        mAuth.signInWithEmailAndPassword(emailValue, passwordValue).addOnSuccessListener(authResult -> {
+            spinner.setVisibility(View.INVISIBLE);
+            signInButton.setEnabled(true);
+            switchTo("ToHome");
+        }).addOnFailureListener(e -> {
+            spinner.setVisibility(View.INVISIBLE);
+            errorView.setText(e.getMessage());
+            errorView.setVisibility(View.VISIBLE);
+            signInButton.setEnabled(true);
         });
     }
 
-    // ON SUCCESS
-//    spinner.setVisibility(View.INVISIBLE);
-//                if (response.isSuccessful()) {
-//        Toast.makeText(getContext(), response.body(), Toast.LENGTH_LONG).show();
-//        sharedPreferences = requireActivity().getSharedPreferences(SP_KEY, Context.MODE_PRIVATE);
-//        SharedPreferences.Editor editor = sharedPreferences.edit();
-//        editor.putString("TOKEN", response.body());
-//        editor.apply();
-//        switchTo("ToProfile");
-//    } else {
-//        try {
-//            errorView.setText(response.errorBody().string());
-//        } catch (IOException e) {
-//            errorView.setText(R.string.error);
-//            e.printStackTrace();
-//        }
-//        errorView.setVisibility(View.VISIBLE);
-//    }
+    private void resetPassword() {
+        AlertDialog resetBuilder = new MaterialAlertDialogBuilder(requireContext())
+                .setView(R.layout.reset_password)
+                .setPositiveButton("Save", null)
+                .setNegativeButton("Cancel", (dialog, which) -> dialog.cancel())
+                .create();
 
+        resetBuilder.setOnShowListener(dialogInterface -> {
+            Button saveButton = ((AlertDialog) dialogInterface).getButton(AlertDialog.BUTTON_POSITIVE);
+            CircularProgressIndicator spinner = ((AlertDialog) dialogInterface).findViewById(R.id.spinner);
+            TextView passwordResetError = ((AlertDialog) dialogInterface).findViewById(R.id.passwordResetError);
+            TextInputLayout passwordResetLayout = ((AlertDialog) dialogInterface).findViewById(R.id.passwordResetLayout);
+            saveButton.setOnClickListener(view -> {
+                TextInputEditText passwordResetInput = ((AlertDialog) dialogInterface).findViewById(R.id.passwordResetInput);
+                String emailValue = passwordResetInput.getText().toString().trim();
+                passwordResetLayout.setError(null);
+                passwordResetError.setVisibility(View.GONE);
 
-    // ON FAILURE
-//    spinner.setVisibility(View.INVISIBLE);
-//                Toast.makeText(getContext(), R.string.error, Toast.LENGTH_LONG).show();
-//                t.printStackTrace();
+                if (emailValue == null || !Patterns.EMAIL_ADDRESS.matcher(emailValue).matches()) {
+                    passwordResetLayout.setError(getString(R.string.email_error));
+                    return;
+                }
+
+                spinner.setVisibility(View.VISIBLE);
+                FirebaseAuth.getInstance().sendPasswordResetEmail(emailValue).addOnSuccessListener(aVoid -> {
+                    Snackbar.make(getActivity().findViewById(R.id.coordinatorLayout), requireContext().getString(R.string.reset_sent), Snackbar.LENGTH_LONG)
+                            .setAnchorView(getActivity().findViewById(R.id.bottom_navigation))
+                            .show();
+                    dialogInterface.dismiss();
+                }).addOnFailureListener(e -> Snackbar.make(getActivity().findViewById(R.id.coordinatorLayout), requireContext().getString(R.string.reset_sent), Snackbar.LENGTH_LONG)
+                        .setAnchorView(getActivity().findViewById(R.id.bottom_navigation))
+                        .show());
+            });
+        });
+
+        resetBuilder.show();
+    }
 
     private void switchTo(String fragmentName) {
         Bundle flipBundle = new Bundle();

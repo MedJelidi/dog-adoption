@@ -3,16 +3,16 @@ package tn.rabini.dogadoption.models;
 import java.util.ArrayList;
 
 public class User {
-    private String username, email, phone, password;
+    private String username, email, phone, picture;
     private ArrayList<Dog> dogs, likedDogs;
 
     public User() {}
 
-    public User(String username, String email, String phone, String password) {
+    public User(String username, String email, String phone, String picture) {
         this.username = username;
         this.email = email;
         this.phone = phone;
-        this.password = password;
+        this.picture = picture;
         this.dogs = new ArrayList<>();
         this.likedDogs = new ArrayList<>();
     }
@@ -41,12 +41,12 @@ public class User {
         this.phone = phone;
     }
 
-    public String getPassword() {
-        return password;
+    public String getPicture() {
+        return picture;
     }
 
-    public void setPassword(String password) {
-        this.password = password;
+    public void setPicture(String picture) {
+        this.picture = picture;
     }
 
     public ArrayList<Dog> getDogs() {
@@ -99,7 +99,7 @@ public class User {
                 "username='" + username + '\'' +
                 ", email='" + email + '\'' +
                 ", phone='" + phone + '\'' +
-                ", password='" + password + '\'' +
+                ", picture='" + picture + '\'' +
                 ", dogs=" + dogs +
                 ", likedDogs=" + likedDogs +
                 '}';
