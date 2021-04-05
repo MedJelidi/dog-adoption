@@ -28,7 +28,8 @@
             android:id="@+id/newUsernameInput"
             android:layout_width="250dp"
             android:layout_height="wrap_content"
-            android:hint="@string/new_username" />
+            android:hint="@string/new_username"
+            android:maxLines="3" />
 
     </com.google.android.material.textfield.TextInputLayout>
 

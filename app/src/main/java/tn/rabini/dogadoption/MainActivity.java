@@ -20,7 +20,7 @@ public class MainActivity extends AppCompatActivity {
                 .setLogo(R.drawable.splash_logo_black)
                 .setTitle("Dog Adoption")
                 .setTitleColor(R.color.black)
-                .setDuration(2000)
+                .setDuration(1000)
                 .show();
         setContentView(R.layout.activity_main);
         getSupportActionBar().setDisplayShowTitleEnabled(false);

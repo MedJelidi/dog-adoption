@@ -68,8 +68,8 @@ public class LoginFragment extends Fragment {
     private void onSignIn() {
         signInButton.setEnabled(false);
         errorView.setVisibility(View.INVISIBLE);
-        String emailValue = emailInput.getText().toString();
-        String passwordValue = passwordInput.getText().toString();
+        String emailValue = emailInput.getText().toString().trim();
+        String passwordValue = passwordInput.getText().toString().trim();
         if (TextUtils.isEmpty(emailValue) || TextUtils.isEmpty(passwordValue)) {
             if (TextUtils.isEmpty(emailValue)) {
                 emailLayout.setError(getString(R.string.field_empty));
@@ -104,7 +104,7 @@ public class LoginFragment extends Fragment {
     private void resetPassword() {
         AlertDialog resetBuilder = new MaterialAlertDialogBuilder(requireContext())
                 .setView(R.layout.reset_password)
-                .setPositiveButton("Save", null)
+                .setPositiveButton("Submit", null)
                 .setNegativeButton("Cancel", (dialog, which) -> dialog.cancel())
                 .create();
 

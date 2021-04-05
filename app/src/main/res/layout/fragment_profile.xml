@@ -17,7 +17,7 @@
         android:id="@+id/allLayouts"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="gone">
+        android:visibility="visible">
 
         <LinearLayout
             android:id="@+id/topBar"
@@ -80,7 +80,8 @@
                     android:layout_centerInParent="true"
                     android:fontFamily="@font/roboto_bold"
                     android:textColor="#252F6A"
-                    android:textSize="28sp" />
+                    android:textSize="28sp"
+                    app:autoSizeTextType="uniform" />
             </RelativeLayout>
 
         </LinearLayout>

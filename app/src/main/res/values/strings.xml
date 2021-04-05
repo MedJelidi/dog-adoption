@@ -17,7 +17,7 @@
     <string name="password_error">Passwords are not the same.</string>
     <string name="email_error">Please insert a valid email address.</string>
     <string name="phone_error">Please insert a valid phone number.</string>
-    <string name="username_error">Username should be more than 6 characters.</string>
+    <string name="username_error">Username should be between 2 and 30 characters.</string>
     <string name="field_empty">Field cannot be empty.</string>
     <string name="password_short">Password length should be > 6.</string>
     <!-- TODO: Remove or change this placeholder text -->
@@ -92,4 +92,9 @@
     <string name="male">Male</string>
     <string name="filter">Filter</string>
     <string name="search_by">Search By</string>
+    <string name="available">Available</string>
+    <string name="broken_heart">broken_heart</string>
+    <string name="you_have_not_liked_any_dog_yet">You have no favorite dogs…</string>
+    <string name="checkout_some_dogs">Checkout some dogs&#160;</string>
+    <string name="here">here</string>
 </resources>

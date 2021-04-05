@@ -4,6 +4,8 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -21,6 +23,8 @@ public class FavoritesFragment extends Fragment {
     private LikedDogAdapter likedDogAdapter;
     private DatabaseReference ref;
     private CircularProgressIndicator spinner;
+    private LinearLayout noLikeLayout;
+    private TextView dogListLink;
 
     public FavoritesFragment() {
         // Required empty public constructor
@@ -48,6 +52,8 @@ public class FavoritesFragment extends Fragment {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_favorites, container, false);
         spinner = v.findViewById(R.id.spinner);
+        noLikeLayout = v.findViewById(R.id.noLikeLayout);
+        dogListLink = v.findViewById(R.id.dogListLink);
         dogList = v.findViewById(R.id.dogList);
         dogList.setLayoutManager(new LinearLayoutManager(requireContext()));
         FirebaseRecyclerOptions<String> options = new FirebaseRecyclerOptions.Builder<String>()
@@ -58,10 +64,24 @@ public class FavoritesFragment extends Fragment {
             public void onDataChanged() {
                 super.onDataChanged();
                 spinner.setVisibility(View.GONE);
-                dogList.setVisibility(View.VISIBLE);
+                if (getItemCount() == 0) {
+                    noLikeLayout.setVisibility(View.VISIBLE);
+                    dogListLink.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            Bundle flipBundle = new Bundle();
+                            flipBundle.putString("flip", "ToHome");
+                            getParentFragmentManager().setFragmentResult("flipResult", flipBundle);
+                        }
+                    });
+                } else {
+                    dogList.setVisibility(View.VISIBLE);
+                }
             }
         };
+
         dogList.setAdapter(likedDogAdapter);
+
         return v;
     }
 

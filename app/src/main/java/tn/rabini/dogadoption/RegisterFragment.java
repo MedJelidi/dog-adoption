@@ -83,11 +83,11 @@ public class RegisterFragment extends Fragment {
         confirmPasswordLayout.setError(null);
         errorView.setVisibility(View.INVISIBLE);
 
-        String usernameValue = usernameInput.getText().toString();
-        String emailValue = emailInput.getText().toString();
-        String phoneValue = phoneInput.getText().toString();
-        String passwordValue = passwordInput.getText().toString();
-        String confirmPasswordValue = confirmPasswordInput.getText().toString();
+        String usernameValue = usernameInput.getText().toString().trim();
+        String emailValue = emailInput.getText().toString().trim();
+        String phoneValue = phoneInput.getText().toString().trim();
+        String passwordValue = passwordInput.getText().toString().trim();
+        String confirmPasswordValue = confirmPasswordInput.getText().toString().trim();
 
         if (formValid(usernameLayout, emailLayout, phoneLayout, passwordLayout, confirmPasswordLayout, usernameValue, emailValue, phoneValue, passwordValue, confirmPasswordValue)) {
             spinner.setVisibility(View.VISIBLE);
@@ -189,7 +189,7 @@ public class RegisterFragment extends Fragment {
                               String phoneValue,
                               String passwordValue,
                               String confirmPasswordValue) {
-        if (usernameValue == null || usernameValue.length() < 6) {
+        if (usernameValue == null || usernameValue.length() < 2 || usernameValue.length() > 30) {
             usernameLayout.setError(getString(R.string.username_error));
             return false;
         }

@@ -73,7 +73,6 @@ public class ProfileFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setHasOptionsMenu(true);
         mAuth = FirebaseAuth.getInstance();
         currentUser = mAuth.getCurrentUser();
 
@@ -86,6 +85,7 @@ public class ProfileFragment extends Fragment {
                         imagePath = result.getData().getData();
                         StorageReference ref = FirebaseStorage.getInstance().getReference().child("images/" + UUID.randomUUID().toString());
                         allLayouts.setVisibility(View.GONE);
+                        setHasOptionsMenu(false);
                         spinner.setVisibility(View.VISIBLE);
                         ref.putFile(imagePath)
                                 .addOnSuccessListener(taskSnapshot -> {
@@ -102,11 +102,18 @@ public class ProfileFragment extends Fragment {
                                                         .setAnchorView(getActivity().findViewById(R.id.bottom_navigation))
                                                         .show();
                                             }
+                                            Glide.with(getContext())
+                                                    .load(uri.toString())
+                                                    .fitCenter()
+                                                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                                                    .error(R.drawable.ic_baseline_error_24)
+                                                    .into(profileImage);
                                             Snackbar.make(getActivity().findViewById(R.id.coordinatorLayout), getString(R.string.image_updated), Snackbar.LENGTH_LONG)
                                                     .setAnchorView(getActivity().findViewById(R.id.bottom_navigation))
                                                     .show();
                                             spinner.setVisibility(View.GONE);
                                             allLayouts.setVisibility(View.VISIBLE);
+                                            setHasOptionsMenu(true);
                                         });
 
                                     });
@@ -114,6 +121,7 @@ public class ProfileFragment extends Fragment {
                                 .addOnFailureListener(e -> {
                                     spinner.setVisibility(View.GONE);
                                     allLayouts.setVisibility(View.VISIBLE);
+                                    setHasOptionsMenu(true);
                                     Snackbar.make(getActivity().findViewById(R.id.coordinatorLayout), e.getMessage(), Snackbar.LENGTH_LONG)
                                             .setAnchorView(getActivity().findViewById(R.id.bottom_navigation))
                                             .show();
@@ -141,6 +149,7 @@ public class ProfileFragment extends Fragment {
                                     .into(profileImage);
                             spinner.setVisibility(View.GONE);
                             allLayouts.setVisibility(View.VISIBLE);
+                            setHasOptionsMenu(true);
                         }
                     }
 
@@ -190,8 +199,8 @@ public class ProfileFragment extends Fragment {
         profileImage = v.findViewById(R.id.profileImage);
         RecyclerView myDogList = v.findViewById(R.id.myDogList);
         myDogList.setLayoutManager(new LinearLayoutManager(requireContext()));
-        FirebaseRecyclerOptions<Dog> options = new FirebaseRecyclerOptions.Builder<Dog>()
-                .setQuery(ref, Dog.class)
+        FirebaseRecyclerOptions<String> options = new FirebaseRecyclerOptions.Builder<String>()
+                .setQuery(ref, String.class)
                 .build();
         myDogAdapter = new MyDogAdapter(options, requireContext());
         myDogList.setAdapter(myDogAdapter);
@@ -255,6 +264,11 @@ public class ProfileFragment extends Fragment {
             CircularProgressIndicator spinner = ((AlertDialog) dialogInterface).findViewById(R.id.spinner);
             Button saveButton = ((AlertDialog) dialogInterface).getButton(AlertDialog.BUTTON_POSITIVE);
             saveButton.setOnClickListener(view -> {
+                String usernameValue = newUsernameInput.getText().toString().trim();
+                if (usernameValue == null || usernameValue.length() < 2 || usernameValue.length() > 30) {
+                    newUsernameLayout.setError(getString(R.string.username_error));
+                    return;
+                }
                 newUsernameLayout.setError(null);
                 editUsernameError.setVisibility(View.GONE);
                 spinner.setVisibility(View.VISIBLE);
@@ -263,7 +277,7 @@ public class ProfileFragment extends Fragment {
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                             User user = dataSnapshot.getValue(User.class);
-                            if (user.getUsername().equals(newUsernameInput.getText().toString())) {
+                            if (user.getUsername().equals(usernameValue)) {
                                 newUsernameLayout.setError(getString(R.string.username_exists));
                                 spinner.setVisibility(View.GONE);
                                 return;
@@ -271,13 +285,14 @@ public class ProfileFragment extends Fragment {
                         }
                         DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("Users").child(currentUser.getUid());
                         Map<String, Object> userUpdates = new HashMap<>();
-                        userUpdates.put("username", newUsernameInput.getText().toString());
+                        userUpdates.put("username", usernameValue);
                         userRef.updateChildren(userUpdates, (error, ref) -> {
                             if (error != null) {
                                 editUsernameError.setText(error.getMessage());
                                 editUsernameError.setVisibility(View.VISIBLE);
                             } else {
                                 dialogInterface.dismiss();
+                                usernameView.setText(usernameValue);
                                 Snackbar.make(getActivity().findViewById(R.id.coordinatorLayout), getString(R.string.username_updated), Snackbar.LENGTH_LONG)
                                         .setAnchorView(getActivity().findViewById(R.id.bottom_navigation))
                                         .show();
@@ -322,7 +337,7 @@ public class ProfileFragment extends Fragment {
                 newPhoneLayout.setError(null);
                 editPhoneError.setVisibility(View.GONE);
 
-                if (!validPhone(newPhoneInput.getText().toString())) {
+                if (!validPhone(newPhoneInput.getText().toString().trim())) {
                     newPhoneLayout.setError(getString(R.string.phone_error));
                     return;
                 }
@@ -333,7 +348,7 @@ public class ProfileFragment extends Fragment {
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                             User user = dataSnapshot.getValue(User.class);
-                            if (user.getPhone().equals(newPhoneInput.getText().toString())) {
+                            if (user.getPhone().equals(newPhoneInput.getText().toString().trim())) {
                                 spinner.setVisibility(View.GONE);
                                 newPhoneLayout.setError(getString(R.string.phone_exists));
                                 return;
@@ -341,7 +356,7 @@ public class ProfileFragment extends Fragment {
                         }
                         DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("Users").child(currentUser.getUid());
                         Map<String, Object> userUpdates = new HashMap<>();
-                        userUpdates.put("phone", newPhoneInput.getText().toString());
+                        userUpdates.put("phone", newPhoneInput.getText().toString().trim());
                         userRef.updateChildren(userUpdates, (error, ref) -> {
                             if (error != null) {
                                 editPhoneError.setText(error.getMessage());
@@ -350,6 +365,7 @@ public class ProfileFragment extends Fragment {
                             } else {
                                 spinner.setVisibility(View.GONE);
                                 dialogInterface.dismiss();
+                                phoneView.setText(newPhoneInput.getText().toString().trim());
                                 Snackbar.make(getActivity().findViewById(R.id.coordinatorLayout), getString(R.string.phone_updated), Snackbar.LENGTH_LONG)
                                         .setAnchorView(getActivity().findViewById(R.id.bottom_navigation))
                                         .show();
@@ -372,6 +388,7 @@ public class ProfileFragment extends Fragment {
         Intent intent = new Intent();
         intent.setType("image/*");
         intent.setAction(Intent.ACTION_GET_CONTENT);
+        setHasOptionsMenu(false);
         startImageIntent.launch(intent);
     }
 

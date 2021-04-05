@@ -28,61 +28,77 @@ import com.google.firebase.database.ValueEventListener;
 
 import tn.rabini.dogadoption.models.Dog;
 
-public class MyDogAdapter extends FirebaseRecyclerAdapter<Dog, MyDogAdapter.MyDogViewHolder> {
+public class MyDogAdapter extends FirebaseRecyclerAdapter<String, MyDogAdapter.MyDogViewHolder> {
 
     private final Context context;
 
-    public MyDogAdapter(@NonNull FirebaseRecyclerOptions<Dog> options, Context context) {
+    public MyDogAdapter(@NonNull FirebaseRecyclerOptions<String> options, Context context) {
         super(options);
         this.context = context;
     }
 
     @Override
-    protected void onBindViewHolder(@NonNull MyDogAdapter.MyDogViewHolder holder, int position, @NonNull Dog model) {
-        CircularProgressDrawable circularProgressDrawable = new CircularProgressDrawable(context);
-        circularProgressDrawable.setStrokeWidth(5f);
-        circularProgressDrawable.setCenterRadius(30f);
-        circularProgressDrawable.start();
-        Glide.with(context)
-                .load(model.getImage())
-                .fitCenter()
-                .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .placeholder(circularProgressDrawable)
-                .error(R.drawable.ic_baseline_error_24)
-                .into(holder.dogImage);
+    protected void onBindViewHolder(@NonNull MyDogAdapter.MyDogViewHolder holder, int position, @NonNull String model) {
 
-        holder.dogName.setText(model.getName());
+        FirebaseDatabase.getInstance()
+                .getReference("Dogs")
+                .child(model)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        Dog dog = snapshot.getValue(Dog.class);
+                        CircularProgressDrawable circularProgressDrawable = new CircularProgressDrawable(context);
+                        circularProgressDrawable.setStrokeWidth(5f);
+                        circularProgressDrawable.setCenterRadius(30f);
+                        circularProgressDrawable.start();
+                        Glide.with(context)
+                                .load(dog.getImage())
+                                .fitCenter()
+                                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                                .placeholder(circularProgressDrawable)
+                                .error(R.drawable.ic_baseline_error_24)
+                                .into(holder.dogImage);
 
-        holder.itemView.setOnClickListener(view -> {
-            Bundle flipBundle = new Bundle();
-            flipBundle.putString("flip", "ToDogDetails");
-            flipBundle.putString("id", model.getId());
-            flipBundle.putString("image", model.getImage());
-            flipBundle.putString("name", model.getName());
-            flipBundle.putString("race", model.getRace());
-            flipBundle.putString("age", model.getAge());
-            flipBundle.putString("gender", model.getGender());
-            flipBundle.putString("description", model.getDescription());
-            flipBundle.putBoolean("ready", model.isReady());
-            flipBundle.putString("location", model.getLocation());
-            flipBundle.putString("owner", model.getOwner());
-            ((AppCompatActivity) context).getSupportFragmentManager().setFragmentResult("flipResult", flipBundle);
-        });
+                        holder.dogName.setText(dog.getName());
 
-        holder.editButton.setOnClickListener(view -> {
-            Bundle flipBundle = new Bundle();
-            flipBundle.putString("flip", "ToEditDog");
-            flipBundle.putString("id", model.getId());
-            flipBundle.putString("image", model.getImage());
-            flipBundle.putString("name", model.getName());
-            flipBundle.putString("race", model.getRace());
-            flipBundle.putString("age", model.getAge());
-            flipBundle.putString("gender", model.getGender());
-            flipBundle.putString("description", model.getDescription());
-            flipBundle.putBoolean("ready", model.isReady());
-            flipBundle.putString("location", model.getLocation());
-            ((AppCompatActivity) context).getSupportFragmentManager().setFragmentResult("flipResult", flipBundle);
-        });
+                        holder.itemView.setOnClickListener(view -> {
+                            Bundle flipBundle = new Bundle();
+                            flipBundle.putString("flip", "ToDogDetails");
+                            flipBundle.putString("id", dog.getId());
+                            flipBundle.putString("image", dog.getImage());
+                            flipBundle.putString("name", dog.getName());
+                            flipBundle.putString("race", dog.getRace());
+                            flipBundle.putString("age", dog.getAge());
+                            flipBundle.putString("gender", dog.getGender());
+                            flipBundle.putString("description", dog.getDescription());
+                            flipBundle.putBoolean("ready", dog.isReady());
+                            flipBundle.putString("location", dog.getLocation());
+                            flipBundle.putString("owner", dog.getOwner());
+                            ((AppCompatActivity) context).getSupportFragmentManager().setFragmentResult("flipResult", flipBundle);
+                        });
+
+                        holder.editButton.setOnClickListener(view -> {
+                            Bundle flipBundle = new Bundle();
+                            flipBundle.putString("flip", "ToEditDog");
+                            flipBundle.putString("id", dog.getId());
+                            flipBundle.putString("image", dog.getImage());
+                            flipBundle.putString("name", dog.getName());
+                            flipBundle.putString("race", dog.getRace());
+                            flipBundle.putString("age", dog.getAge());
+                            flipBundle.putString("gender", dog.getGender());
+                            flipBundle.putString("description", dog.getDescription());
+                            flipBundle.putBoolean("ready", dog.isReady());
+                            flipBundle.putString("location", dog.getLocation());
+                            ((AppCompatActivity) context).getSupportFragmentManager().setFragmentResult("flipResult", flipBundle);
+                        });
+
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
 
         holder.deleteButton.setOnClickListener(view -> {
             MaterialAlertDialogBuilder deleteBuilder = new MaterialAlertDialogBuilder(context)
@@ -95,14 +111,14 @@ public class MyDogAdapter extends FirebaseRecyclerAdapter<Dog, MyDogAdapter.MyDo
                                 @Override
                                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                                     for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                                        Dog dog = dataSnapshot.getValue(Dog.class);
-                                        if (dog != null) {
-                                            if (dog.getId().equals(model.getId())) {
+                                        String dogID = dataSnapshot.getValue(String.class);
+                                        if (dogID != null) {
+                                            if (dogID.equals(model)) {
                                                 dataSnapshot.getRef().removeValue()
                                                         .addOnSuccessListener(aVoid -> FirebaseDatabase
                                                                 .getInstance()
                                                                 .getReference("Dogs")
-                                                                .child(dog.getId())
+                                                                .child(dogID)
                                                                 .removeValue()
                                                                 .addOnSuccessListener(aVoid1 -> Toast.makeText(context, "Dog deleted successfully!", Toast.LENGTH_LONG).show())
                                                                 .addOnFailureListener(e -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show()))

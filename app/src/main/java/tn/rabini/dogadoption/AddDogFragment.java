@@ -42,8 +42,8 @@ import tn.rabini.dogadoption.models.User;
 public class AddDogFragment extends Fragment {
 
     ActivityResultLauncher<Intent> startImageIntent;
-    private TextInputLayout nameLayout, raceLayout, ageLayout, descriptionLayout, locationLayout;
-    private TextInputEditText nameInput, raceInput, ageInput, descriptionInput, locationInput;
+    private TextInputLayout nameLayout, ageLayout, descriptionLayout;
+    private TextInputEditText nameInput, ageInput, descriptionInput;
     private String nameValue, raceValue, ageValue, descriptionValue, locationValue,
             genderValue = "Male";
     private boolean readyValue;
@@ -55,6 +55,7 @@ public class AddDogFragment extends Fragment {
     private FirebaseAuth mAuth;
     private CircularProgressIndicator spinner;
     private LinearLayout submitCancelLayout;
+    private MaterialSpinner raceLayout, locationLayout;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -85,10 +86,8 @@ public class AddDogFragment extends Fragment {
         descriptionLayout = v.findViewById(R.id.descriptionLayout);
         locationLayout = v.findViewById(R.id.locationLayout);
         nameInput = v.findViewById(R.id.nameInput);
-        raceInput = v.findViewById(R.id.raceInput);
         ageInput = v.findViewById(R.id.ageInput);
         descriptionInput = v.findViewById(R.id.descriptionInput);
-        locationInput = v.findViewById(R.id.locationInput);
         errorView = v.findViewById(R.id.errorView);
         Button imageButton = v.findViewById(R.id.imagePickerButton);
         readySwitch = v.findViewById(R.id.readySwitch);
@@ -102,8 +101,6 @@ public class AddDogFragment extends Fragment {
         genderAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         genderLayout.setAdapter(genderAdapter);
 
-//        searchOptions.setSelection(0);
-
         genderLayout.setOnItemSelectedListener(new MaterialSpinner.OnItemSelectedListener() {
             @Override
             public void onItemSelected(@NonNull MaterialSpinner materialSpinner, View view, int i, long l) {
@@ -113,6 +110,38 @@ public class AddDogFragment extends Fragment {
             @Override
             public void onNothingSelected(@NonNull MaterialSpinner materialSpinner) {
                 genderValue = "Male";
+            }
+        });
+
+        ArrayAdapter<CharSequence> raceAdapter = ArrayAdapter.createFromResource(requireContext(),
+                R.array.dog_races, android.R.layout.simple_spinner_item);
+        raceAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        raceLayout.setAdapter(raceAdapter);
+
+        raceLayout.setOnItemSelectedListener(new MaterialSpinner.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(@NonNull MaterialSpinner materialSpinner, View view, int i, long l) {
+                raceValue = materialSpinner.getSelectedItem().toString();
+            }
+
+            @Override
+            public void onNothingSelected(@NonNull MaterialSpinner materialSpinner) {
+            }
+        });
+
+        ArrayAdapter<CharSequence> locationAdapter = ArrayAdapter.createFromResource(requireContext(),
+                R.array.location_names, android.R.layout.simple_spinner_item);
+        locationAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        locationLayout.setAdapter(locationAdapter);
+
+        locationLayout.setOnItemSelectedListener(new MaterialSpinner.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(@NonNull MaterialSpinner materialSpinner, View view, int i, long l) {
+                locationValue = materialSpinner.getSelectedItem().toString();
+            }
+
+            @Override
+            public void onNothingSelected(@NonNull MaterialSpinner materialSpinner) {
             }
         });
 
@@ -129,10 +158,8 @@ public class AddDogFragment extends Fragment {
 
     private void onSubmit() {
         nameValue = nameInput.getText().toString().trim();
-        raceValue = raceInput.getText().toString().trim();
         ageValue = ageInput.getText().toString().trim();
         descriptionValue = descriptionInput.getText().toString().trim();
-        locationValue = locationInput.getText().toString().trim();
         readyValue = readySwitch.isChecked();
         if (formValid()) {
             submitButton.setEnabled(false);
@@ -168,11 +195,11 @@ public class AddDogFragment extends Fragment {
                                                         public void onDataChange(@NonNull DataSnapshot snapshot) {
                                                             User user = snapshot.getValue(User.class);
                                                             if (user != null) {
-                                                                ArrayList<Dog> dogs = new ArrayList<>();
+                                                                ArrayList<String> dogs = new ArrayList<>();
                                                                 if (user.getDogs() != null) {
                                                                     dogs = user.getDogs();
                                                                 }
-                                                                dogs.add(dog);
+                                                                dogs.add(dog.getId());
                                                                 FirebaseDatabase.getInstance()
                                                                         .getReference("Users")
                                                                         .child(mAuth.getCurrentUser().getUid())
@@ -188,12 +215,15 @@ public class AddDogFragment extends Fragment {
 
                                                         @Override
                                                         public void onCancelled(@NonNull DatabaseError error) {
-
+                                                            submitButton.setEnabled(true);
+                                                            submitCancelLayout.setVisibility(View.VISIBLE);
                                                         }
                                                     });
+                                        } else {
+                                            submitButton.setEnabled(true);
+                                            submitCancelLayout.setVisibility(View.VISIBLE);
                                         }
-                                        submitButton.setEnabled(true);
-                                        submitCancelLayout.setVisibility(View.VISIBLE);
+
                                     });
                         });
                     })
@@ -216,9 +246,11 @@ public class AddDogFragment extends Fragment {
         nameLayout.setError(null);
         descriptionLayout.setError(null);
         locationLayout.setError(null);
+        raceLayout.setError(null);
+        ageLayout.setError(null);
         errorView.setVisibility(View.INVISIBLE);
-        if (nameValue == null || nameValue.length() == 0) {
-            nameLayout.setError("Name required.");
+        if (nameValue == null || nameValue.length() < 2 || nameValue.length() > 10) {
+            nameLayout.setError("Name should be between 2 and 10 characters.");
             return false;
         }
         if (raceValue == null || raceValue.length() == 0) {
