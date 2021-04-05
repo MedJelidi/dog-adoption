@@ -27,6 +27,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
@@ -50,7 +52,6 @@ import java.util.Map;
 import java.util.UUID;
 
 import de.hdodenhof.circleimageview.CircleImageView;
-import tn.rabini.dogadoption.models.Dog;
 import tn.rabini.dogadoption.models.User;
 
 public class ProfileFragment extends Fragment {
@@ -91,30 +92,60 @@ public class ProfileFragment extends Fragment {
                                 .addOnSuccessListener(taskSnapshot -> {
                                     final Task<Uri> firebaseUri = taskSnapshot.getStorage().getDownloadUrl();
                                     firebaseUri.addOnSuccessListener(uri -> {
-                                        DatabaseReference userRef = FirebaseDatabase.getInstance()
-                                                .getReference("Users")
-                                                .child(currentUser.getUid());
-                                        Map<String, Object> userUpdates = new HashMap<>();
-                                        userUpdates.put("picture", uri.toString());
-                                        userRef.updateChildren(userUpdates, (error, ref1) -> {
-                                            if (error != null) {
-                                                Snackbar.make(getActivity().findViewById(R.id.coordinatorLayout), error.getMessage(), Snackbar.LENGTH_LONG)
-                                                        .setAnchorView(getActivity().findViewById(R.id.bottom_navigation))
-                                                        .show();
-                                            }
-                                            Glide.with(getContext())
-                                                    .load(uri.toString())
-                                                    .fitCenter()
-                                                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-                                                    .error(R.drawable.ic_baseline_error_24)
-                                                    .into(profileImage);
-                                            Snackbar.make(getActivity().findViewById(R.id.coordinatorLayout), getString(R.string.image_updated), Snackbar.LENGTH_LONG)
-                                                    .setAnchorView(getActivity().findViewById(R.id.bottom_navigation))
-                                                    .show();
-                                            spinner.setVisibility(View.GONE);
-                                            allLayouts.setVisibility(View.VISIBLE);
-                                            setHasOptionsMenu(true);
-                                        });
+                                        FirebaseDatabase.getInstance().getReference().child("Users").child(currentUser.getUid())
+                                                .addListenerForSingleValueEvent(new ValueEventListener() {
+                                                    @Override
+                                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                                        if (getActivity() == null) {
+                                                            return;
+                                                        }
+                                                        User user = snapshot.getValue(User.class);
+                                                        if (user != null) {
+                                                            FirebaseStorage.getInstance()
+                                                                    .getReferenceFromUrl(user.getPicture())
+                                                                    .delete()
+                                                                    .addOnSuccessListener(aVoid -> {
+                                                                        DatabaseReference userRef = FirebaseDatabase.getInstance()
+                                                                                .getReference("Users")
+                                                                                .child(currentUser.getUid());
+                                                                        Map<String, Object> userUpdates = new HashMap<>();
+                                                                        userUpdates.put("picture", uri.toString());
+                                                                        userRef.updateChildren(userUpdates, (error, ref1) -> {
+                                                                            if (error != null) {
+                                                                                Snackbar.make(getActivity().findViewById(R.id.coordinatorLayout), error.getMessage(), Snackbar.LENGTH_LONG)
+                                                                                        .setAnchorView(getActivity().findViewById(R.id.bottom_navigation))
+                                                                                        .show();
+                                                                            } else {
+                                                                                Glide.with(getContext())
+                                                                                        .load(uri.toString())
+                                                                                        .fitCenter()
+                                                                                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                                                                                        .error(R.drawable.ic_baseline_error_24)
+                                                                                        .into(profileImage);
+                                                                                Snackbar.make(getActivity().findViewById(R.id.coordinatorLayout), getString(R.string.image_updated), Snackbar.LENGTH_LONG)
+                                                                                        .setAnchorView(getActivity().findViewById(R.id.bottom_navigation))
+                                                                                        .show();
+                                                                            }
+                                                                            spinner.setVisibility(View.GONE);
+                                                                            allLayouts.setVisibility(View.VISIBLE);
+                                                                            setHasOptionsMenu(true);
+                                                                        });
+                                                                    })
+                                                                    .addOnFailureListener(e -> {
+                                                                        Snackbar.make(getActivity().findViewById(R.id.coordinatorLayout), e.getMessage(), Snackbar.LENGTH_LONG)
+                                                                                .setAnchorView(getActivity().findViewById(R.id.bottom_navigation))
+                                                                                .show();
+                                                                    });
+                                                        }
+                                                    }
+
+                                                    @Override
+                                                    public void onCancelled(@NonNull DatabaseError error) {
+                                                        Snackbar.make(getActivity().findViewById(R.id.coordinatorLayout), error.getMessage(), Snackbar.LENGTH_LONG)
+                                                                .setAnchorView(getActivity().findViewById(R.id.bottom_navigation))
+                                                                .show();
+                                                    }
+                                                });
 
                                     });
                                 })

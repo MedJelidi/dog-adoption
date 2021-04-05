@@ -193,7 +193,20 @@ public class EditDogFragment extends Fragment {
                 ref.putFile(imagePath)
                         .addOnSuccessListener(taskSnapshot -> {
                             final Task<Uri> firebaseUri = taskSnapshot.getStorage().getDownloadUrl();
-                            firebaseUri.addOnSuccessListener(uri -> editDog(uri.toString()));
+                            firebaseUri.addOnSuccessListener(uri -> {
+                                FirebaseStorage.getInstance()
+                                        .getReferenceFromUrl(imageValue)
+                                        .delete()
+                                        .addOnSuccessListener(aVoid -> editDog(uri.toString()))
+                                        .addOnFailureListener(e -> {
+                                            spinner.setVisibility(View.INVISIBLE);
+                                            submitCancelLayout.setVisibility(View.VISIBLE);
+                                            submitButton.setEnabled(true);
+                                            Snackbar.make(getActivity().findViewById(R.id.coordinatorLayout), e.getMessage(), Snackbar.LENGTH_LONG)
+                                                    .setAnchorView(getActivity().findViewById(R.id.bottom_navigation))
+                                                    .show();
+                                        });
+                            });
                         })
                         .addOnFailureListener(e -> {
                             spinner.setVisibility(View.INVISIBLE);
