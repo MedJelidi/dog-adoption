@@ -64,10 +64,45 @@ public class ProfileFragment extends Fragment {
     private RelativeLayout allLayouts;
     private ActivityResultLauncher<Intent> startImageIntent;
     private Uri imagePath;
-    private LinearLayout topBar, myDogsLayout;
+    private LinearLayout topBar;
 
     public ProfileFragment() {
         // Required empty public constructor
+    }
+
+    private void updatePicture(Uri uri) {
+        DatabaseReference userRef = FirebaseDatabase.getInstance()
+                .getReference("Users")
+                .child(currentUser.getUid());
+        Map<String, Object> userUpdates = new HashMap<>();
+        userUpdates.put("picture", uri.toString());
+        userRef.updateChildren(userUpdates, (error, ref1) -> {
+            if (error != null) {
+                Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), error.getMessage(), Snackbar.LENGTH_LONG)
+                        .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
+                        .show();
+            } else {
+                CircularProgressDrawable circularProgressDrawable = new CircularProgressDrawable(requireContext());
+                circularProgressDrawable.setStrokeWidth(5f);
+                circularProgressDrawable.setCenterRadius(30f);
+                circularProgressDrawable.start();
+
+                Glide.with(requireContext())
+                        .load(uri.toString())
+                        .fitCenter()
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        .placeholder(circularProgressDrawable)
+                        .circleCrop()
+                        .error(R.drawable.ic_baseline_error_24)
+                        .into(profileImage);
+                Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), getString(R.string.image_updated), Snackbar.LENGTH_LONG)
+                        .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
+                        .show();
+            }
+            spinner.setVisibility(View.GONE);
+            allLayouts.setVisibility(View.VISIBLE);
+            setHasOptionsMenu(true);
+        });
     }
 
     @Override
@@ -99,46 +134,17 @@ public class ProfileFragment extends Fragment {
                                                     }
                                                     User user = snapshot.getValue(User.class);
                                                     if (user != null) {
-                                                        FirebaseStorage.getInstance()
-                                                                .getReferenceFromUrl(user.getPicture())
-                                                                .delete()
-                                                                .addOnSuccessListener(aVoid -> {
-                                                                    DatabaseReference userRef = FirebaseDatabase.getInstance()
-                                                                            .getReference("Users")
-                                                                            .child(currentUser.getUid());
-                                                                    Map<String, Object> userUpdates = new HashMap<>();
-                                                                    userUpdates.put("picture", uri.toString());
-                                                                    userRef.updateChildren(userUpdates, (error, ref1) -> {
-                                                                        if (error != null) {
-                                                                            Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), error.getMessage(), Snackbar.LENGTH_LONG)
-                                                                                    .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
-                                                                                    .show();
-                                                                        } else {
-                                                                            CircularProgressDrawable circularProgressDrawable = new CircularProgressDrawable(requireContext());
-                                                                            circularProgressDrawable.setStrokeWidth(5f);
-                                                                            circularProgressDrawable.setCenterRadius(30f);
-                                                                            circularProgressDrawable.start();
-
-                                                                            Glide.with(requireContext())
-                                                                                    .load(uri.toString())
-                                                                                    .fitCenter()
-                                                                                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-                                                                                    .placeholder(circularProgressDrawable)
-                                                                                    .circleCrop()
-                                                                                    .error(R.drawable.ic_baseline_error_24)
-                                                                                    .into(profileImage);
-                                                                            Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), getString(R.string.image_updated), Snackbar.LENGTH_LONG)
-                                                                                    .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
-                                                                                    .show();
-                                                                        }
-                                                                        spinner.setVisibility(View.GONE);
-                                                                        allLayouts.setVisibility(View.VISIBLE);
-                                                                        setHasOptionsMenu(true);
-                                                                    });
-                                                                })
-                                                                .addOnFailureListener(e -> Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), e.getMessage(), Snackbar.LENGTH_LONG)
-                                                                        .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
-                                                                        .show());
+                                                        if (user.getPicture().equals("https://firebasestorage.googleapis.com/v0/b/dogadoption-94cad.appspot.com/o/images%2Fdefault_profile_picture.png?alt=media&token=8c2794b6-2f3a-40fd-9b0c-9964a212bcf4")) {
+                                                            updatePicture(uri);
+                                                        } else {
+                                                            FirebaseStorage.getInstance()
+                                                                    .getReferenceFromUrl(user.getPicture())
+                                                                    .delete()
+                                                                    .addOnSuccessListener(aVoid -> updatePicture(uri))
+                                                                    .addOnFailureListener(e -> Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), e.getMessage(), Snackbar.LENGTH_LONG)
+                                                                            .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
+                                                                            .show());
+                                                        }
                                                     }
                                                 }
 
@@ -231,7 +237,7 @@ public class ProfileFragment extends Fragment {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_profile, container, false);
         topBar = v.findViewById(R.id.topBar);
-        myDogsLayout = v.findViewById(R.id.myDogsLayout);
+        LinearLayout myDogsLayout = v.findViewById(R.id.myDogsLayout);
         Button resendButton = v.findViewById(R.id.resendButton);
         spinner = v.findViewById(R.id.spinner);
         allLayouts = v.findViewById(R.id.allLayouts);

@@ -80,7 +80,6 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case "ToDogDetails":
                 replaceFragment(DogDetailsFragment.class, result);
-                bottomNavigationView.getMenu().findItem(R.id.homeItem).setChecked(true);
                 break;
             case "ToEditDog":
                 replaceFragment(EditDogFragment.class, result);

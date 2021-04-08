@@ -128,7 +128,7 @@ public class RegisterFragment extends Fragment {
                 mAuth.createUserWithEmailAndPassword(emailValue, passwordValue)
                         .addOnCompleteListener(task -> {
                             if (task.isSuccessful()) {
-                                User user = new User(usernameValue, emailValue, phoneValue, "https://firebasestorage.googleapis.com/v0/b/dogadoption-94cad.appspot.com/o/images%2Fdefault_profile_picture.png?alt=media&token=d2b6a425-dedc-41d6-b068-c726180dc521");
+                                User user = new User(usernameValue, emailValue, phoneValue, "https://firebasestorage.googleapis.com/v0/b/dogadoption-94cad.appspot.com/o/images%2Fdefault_profile_picture.png?alt=media&token=8c2794b6-2f3a-40fd-9b0c-9964a212bcf4");
                                 FirebaseDatabase.getInstance()
                                         .getReference("Users")
                                         .child(mAuth.getCurrentUser().getUid())

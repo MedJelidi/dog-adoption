@@ -74,6 +74,7 @@ public class MyDogAdapter extends FirebaseRecyclerAdapter<String, MyDogAdapter.M
                             holder.itemView.setOnClickListener(view -> {
                                 Bundle flipBundle = new Bundle();
                                 flipBundle.putString("flip", "ToDogDetails");
+                                flipBundle.putInt("previous_fragment", 2);
                                 flipBundle.putString("id", dog.getId());
                                 flipBundle.putString("image", dog.getImage());
                                 flipBundle.putString("name", dog.getName());

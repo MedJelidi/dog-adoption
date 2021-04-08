@@ -5,6 +5,7 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -47,6 +48,7 @@ import tn.rabini.dogadoption.models.User;
 public class DogDetailsFragment extends Fragment {
 
     private String id, name, race, age, gender, description, image, location, owner;
+    private int previousFragment;
     private ToggleButton likeButton;
     private TextView dogOwner, dogContact;
     private FirebaseAuth mAuth;
@@ -73,6 +75,7 @@ public class DogDetailsFragment extends Fragment {
             ready = getArguments().getBoolean("ready");
             location = getArguments().getString("location");
             owner = getArguments().getString("owner");
+            previousFragment = getArguments().getInt("previous_fragment");
         }
     }
 
@@ -83,6 +86,7 @@ public class DogDetailsFragment extends Fragment {
         View v = inflater.inflate(R.layout.fragment_dog_details, container, false);
         spinner = v.findViewById(R.id.spinner);
         allLayouts = v.findViewById(R.id.allLayouts);
+        ImageView arrowBack = v.findViewById(R.id.arrowBack);
         ImageView dogImage = v.findViewById(R.id.dogImage);
         likeButton = v.findViewById(R.id.likeButton);
         TextView dogName = v.findViewById(R.id.dogName);
@@ -94,6 +98,22 @@ public class DogDetailsFragment extends Fragment {
         dogOwner = v.findViewById(R.id.dogOwner);
         dogContact = v.findViewById(R.id.dogContact);
         dogDescription.setMovementMethod(new ScrollingMovementMethod());
+
+        arrowBack.setOnClickListener(view -> {
+            switch (previousFragment) {
+                case 0:
+                    switchTo("ToHome");
+                    break;
+                case 1:
+                    switchTo("ToFavorites");
+                    break;
+                case 2:
+                    switchTo("ToProfile");
+                    break;
+                default:
+                    break;
+            }
+        });
 
         // IMAGE FULLSCREEN ON CLICK
         dogImage.setOnClickListener(v1 -> {
@@ -132,6 +152,7 @@ public class DogDetailsFragment extends Fragment {
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        Log.v("USEEERRRRRR", snapshot.getValue().toString());
                         User user = snapshot.getValue(User.class);
                         if (user != null) {
                             contactNumber = user.getPhone();
@@ -213,7 +234,6 @@ public class DogDetailsFragment extends Fragment {
                     });
 
         }
-
 
         // ON LIKE BUTTON CLICK
         likeButton.setOnClickListener(view -> {
@@ -314,5 +334,11 @@ public class DogDetailsFragment extends Fragment {
             }
         });
         return v;
+    }
+
+    private void switchTo(String fragmentName) {
+        Bundle flipBundle = new Bundle();
+        flipBundle.putString("flip", fragmentName);
+        getParentFragmentManager().setFragmentResult("flipResult", flipBundle);
     }
 }

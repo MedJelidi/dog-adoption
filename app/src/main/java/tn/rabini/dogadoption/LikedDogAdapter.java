@@ -2,6 +2,7 @@ package tn.rabini.dogadoption;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -73,6 +74,7 @@ public class LikedDogAdapter extends FirebaseRecyclerAdapter<String, LikedDogAda
                             holder.itemView.setOnClickListener(view -> {
                                 Bundle flipBundle = new Bundle();
                                 flipBundle.putString("flip", "ToDogDetails");
+                                flipBundle.putInt("previous_fragment", 1);
                                 flipBundle.putString("id", dog.getId());
                                 flipBundle.putString("image", dog.getImage());
                                 flipBundle.putString("name", dog.getName());
@@ -120,15 +122,20 @@ public class LikedDogAdapter extends FirebaseRecyclerAdapter<String, LikedDogAda
             userRef.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    Log.v("USEEERRRRRR", snapshot.getValue().toString());
                     User user = snapshot.getValue(User.class);
                     if (user != null) {
                         ArrayList<String> likedDogs;
                         if (user.getLikedDogs() != null) {
                             likedDogs = user.getLikedDogs();
+                            Log.v("LIKKKKEEEEEEED DOOGSS", likedDogs.toString());
                             for (int i = 0; i < likedDogs.size(); i++) {
-                                if (likedDogs.get(i).equals(model)) {
-                                    likedDogs.remove(i);
-                                    break;
+                                String dogID = likedDogs.get(i);
+                                if (dogID != null) {
+                                    if (dogID.equals(model)) {
+                                        likedDogs.remove(i);
+                                        break;
+                                    }
                                 }
                             }
                             user.setLikedDogs(likedDogs);
