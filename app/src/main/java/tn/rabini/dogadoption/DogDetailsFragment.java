@@ -1,26 +1,33 @@
 package tn.rabini.dogadoption;
 
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.Fragment;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.Target;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -32,6 +39,7 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import tn.rabini.dogadoption.models.User;
 
@@ -39,12 +47,13 @@ import tn.rabini.dogadoption.models.User;
 public class DogDetailsFragment extends Fragment {
 
     private String id, name, race, age, gender, description, image, location, owner;
-
     private ToggleButton likeButton;
     private TextView dogOwner, dogContact;
     private FirebaseAuth mAuth;
     private String contactNumber;
     private boolean ready;
+    private CircularProgressIndicator spinner;
+    private RelativeLayout allLayouts;
 
     public DogDetailsFragment() {
         // Required empty public constructor
@@ -72,6 +81,8 @@ public class DogDetailsFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_dog_details, container, false);
+        spinner = v.findViewById(R.id.spinner);
+        allLayouts = v.findViewById(R.id.allLayouts);
         ImageView dogImage = v.findViewById(R.id.dogImage);
         likeButton = v.findViewById(R.id.likeButton);
         TextView dogName = v.findViewById(R.id.dogName);
@@ -84,15 +95,9 @@ public class DogDetailsFragment extends Fragment {
         dogContact = v.findViewById(R.id.dogContact);
         dogDescription.setMovementMethod(new ScrollingMovementMethod());
 
-        Glide.with(requireContext())
-                .load(image)
-                .fitCenter()
-                .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .error(R.drawable.ic_baseline_error_24)
-                .into(dogImage);
-
+        // IMAGE FULLSCREEN ON CLICK
         dogImage.setOnClickListener(v1 -> {
-            AlertDialog fullscreenBuilder = new MaterialAlertDialogBuilder(getContext(),
+            AlertDialog fullscreenBuilder = new MaterialAlertDialogBuilder(requireContext(),
                     R.style.DialogTheme)
                     .setNegativeButton("Close", (dialogInterface, i) -> dialogInterface.dismiss())
                     .setView(R.layout.fullscreen_image)
@@ -100,6 +105,7 @@ public class DogDetailsFragment extends Fragment {
 
             fullscreenBuilder.setOnShowListener(dialogInterface -> {
                 ImageView fullscreenImage = ((AlertDialog) dialogInterface).findViewById(R.id.fullscreenImage);
+                assert fullscreenImage != null;
                 Glide.with(requireContext())
                         .load(image)
                         .fitCenter()
@@ -113,20 +119,46 @@ public class DogDetailsFragment extends Fragment {
         dogName.setText(name);
         dogRace.setText(race);
         dogReady.setText(ready ? "Available" : "Not available at the moment");
+
+        // SET AVAILABLE OR NOT IMAGE
         dogReady.setCompoundDrawablesWithIntrinsicBounds(ready ? ContextCompat.getDrawable(requireContext(), R.drawable.baseline_check_circle_24)
                 : ContextCompat.getDrawable(requireContext(), R.drawable.baseline_report_gmailerrorred_24), null, null, null);
         dogAge.setText(getString(R.string.gender_age_detail, gender, age));
         dogDescription.setText(description);
         dogLocation.setText(location);
+
+        // GET OWNER INFO
         FirebaseDatabase.getInstance().getReference("Users").child(owner)
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        User user = (User) snapshot.getValue(User.class);
+                        User user = snapshot.getValue(User.class);
                         if (user != null) {
                             contactNumber = user.getPhone();
                             dogOwner.setText(user.getUsername());
                             dogContact.setText(user.getPhone());
+
+                            Glide.with(requireContext())
+                                    .load(image)
+                                    .listener(new RequestListener<Drawable>() {
+                                        @Override
+                                        public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                                            spinner.setVisibility(View.GONE);
+                                            allLayouts.setVisibility(View.VISIBLE);
+                                            return false;
+                                        }
+
+                                        @Override
+                                        public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                                            spinner.setVisibility(View.GONE);
+                                            allLayouts.setVisibility(View.VISIBLE);
+                                            return false;
+                                        }
+                                    })
+                                    .fitCenter()
+                                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                                    .error(R.drawable.ic_baseline_error_24)
+                                    .into(dogImage);
                         }
                     }
 
@@ -136,6 +168,8 @@ public class DogDetailsFragment extends Fragment {
                     }
                 });
 
+
+        // DIAL INTENT ON CLICK NUMBER
         dogContact.setOnClickListener(view -> {
             Intent dialIntent = new Intent();
             dialIntent.setAction(Intent.ACTION_DIAL);
@@ -143,6 +177,7 @@ public class DogDetailsFragment extends Fragment {
             startActivity(dialIntent);
         });
 
+        // CHECK IF DOG ALREADY LIKED OR NOT
         mAuth = FirebaseAuth.getInstance();
         if (mAuth.getCurrentUser() == null) {
             likeButton.setBackgroundResource(R.drawable.ic_baseline_favorite_border_24);
@@ -150,17 +185,20 @@ public class DogDetailsFragment extends Fragment {
         } else {
             FirebaseDatabase.getInstance()
                     .getReference("Users")
-                    .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                    .child(mAuth.getCurrentUser().getUid())
                     .child("likedDogs")
                     .addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot snapshot) {
                             for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                                if (dataSnapshot.getValue(String.class).equals(id)) {
-                                    likeButton.setBackgroundResource
-                                            (R.drawable.ic_baseline_favorite_24);
-                                    likeButton.setVisibility(View.VISIBLE);
-                                    return;
+                                String dogID = dataSnapshot.getValue(String.class);
+                                if (dogID != null) {
+                                    if (dogID.equals(id)) {
+                                        likeButton.setBackgroundResource
+                                                (R.drawable.ic_baseline_favorite_24);
+                                        likeButton.setVisibility(View.VISIBLE);
+                                        return;
+                                    }
                                 }
                             }
                             likeButton.setBackgroundResource
@@ -176,6 +214,8 @@ public class DogDetailsFragment extends Fragment {
 
         }
 
+
+        // ON LIKE BUTTON CLICK
         likeButton.setOnClickListener(view -> {
             if (mAuth.getCurrentUser() == null) {
                 Bundle flipBundle = new Bundle();
@@ -184,12 +224,12 @@ public class DogDetailsFragment extends Fragment {
                 return;
             }
             view.setEnabled(false);
-            if (view.getBackground().getConstantState().equals(ResourcesCompat
+            if (view.getBackground().getConstantState().equals(Objects.requireNonNull(ResourcesCompat
                     .getDrawable(getResources(), R.drawable.ic_baseline_favorite_border_24
-                            , null).getConstantState())) {
+                            , null)).getConstantState())) {
                 DatabaseReference userRef = FirebaseDatabase.getInstance()
                         .getReference("Users")
-                        .child(FirebaseAuth.getInstance().getCurrentUser().getUid());
+                        .child(mAuth.getCurrentUser().getUid());
                 userRef.addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -205,15 +245,15 @@ public class DogDetailsFragment extends Fragment {
                             userUpdates.put("likedDogs", user.getLikedDogs());
                             FirebaseDatabase.getInstance()
                                     .getReference("Users")
-                                    .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                                    .child(mAuth.getCurrentUser().getUid())
                                     .updateChildren(userUpdates, (error, ref) -> {
                                         if (error != null) {
-                                            Snackbar.make(getActivity().findViewById(R.id.coordinatorLayout), error.getMessage(), Snackbar.LENGTH_LONG)
-                                                    .setAnchorView(getActivity().findViewById(R.id.bottom_navigation))
+                                            Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), error.getMessage(), Snackbar.LENGTH_LONG)
+                                                    .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
                                                     .show();
                                         } else {
-                                            Snackbar.make(getActivity().findViewById(R.id.coordinatorLayout), "Dog added to favorites!", Snackbar.LENGTH_SHORT)
-                                                    .setAnchorView(getActivity().findViewById(R.id.bottom_navigation))
+                                            Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), "Dog added to favorites!", Snackbar.LENGTH_SHORT)
+                                                    .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
                                                     .show();
                                             view.setBackgroundResource(R.drawable.ic_baseline_favorite_24);
                                         }
@@ -228,7 +268,7 @@ public class DogDetailsFragment extends Fragment {
                     }
                 });
             } else {
-                DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("Users").child(FirebaseAuth.getInstance().getCurrentUser().getUid());
+                DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("Users").child(mAuth.getCurrentUser().getUid());
                 userRef.addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -248,15 +288,15 @@ public class DogDetailsFragment extends Fragment {
                                 userUpdates.put("likedDogs", user.getLikedDogs());
                                 FirebaseDatabase.getInstance()
                                         .getReference("Users")
-                                        .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                                        .child(mAuth.getCurrentUser().getUid())
                                         .updateChildren(userUpdates, (error, ref) -> {
                                             if (error != null) {
-                                                Snackbar.make(getActivity().findViewById(R.id.coordinatorLayout), error.getMessage(), Snackbar.LENGTH_LONG)
-                                                        .setAnchorView(getActivity().findViewById(R.id.bottom_navigation))
+                                                Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), error.getMessage(), Snackbar.LENGTH_LONG)
+                                                        .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
                                                         .show();
                                             } else {
-                                                Snackbar.make(getActivity().findViewById(R.id.coordinatorLayout), "Dog removed from favorites!", Snackbar.LENGTH_SHORT)
-                                                        .setAnchorView(getActivity().findViewById(R.id.bottom_navigation))
+                                                Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), "Dog removed from favorites!", Snackbar.LENGTH_SHORT)
+                                                        .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
                                                         .show();
                                                 view.setBackgroundResource(R.drawable.ic_baseline_favorite_border_24);
                                             }

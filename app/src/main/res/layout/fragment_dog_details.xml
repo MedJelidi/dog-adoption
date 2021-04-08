@@ -8,177 +8,192 @@
     android:scrollbars="vertical"
     tools:context=".DogDetailsFragment">
 
-    <ImageView
-        android:id="@+id/dogImage"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="20dp"
-        android:adjustViewBounds="true"
-        android:contentDescription="@string/dog_picture"
-        android:maxWidth="250dp"
-        android:maxHeight="150dp"
-        android:scaleType="fitCenter" />
-
-    <LinearLayout
-        android:id="@+id/dogNameAge"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/dogImage"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="20dp"
-        android:orientation="vertical">
-
-        <TextView
-            android:id="@+id/dogName"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:fontFamily="@font/roboto_bold"
-            android:textColor="@color/black"
-            android:textSize="32sp" />
-
-        <TextView
-            android:id="@+id/dogAge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:textSize="16sp" />
-
-    </LinearLayout>
-
-    <TextView
-        android:id="@+id/dogDescription"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/dogNameAge"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="15dp"
-        android:layout_marginBottom="15dp"
-        android:fontFamily="@font/roboto_light"
-        android:maxLines="3"
-        android:scrollbars="vertical"
-        android:textColor="@color/black"
-        android:textSize="16sp" />
-
-    <LinearLayout
-        android:id="@+id/specificDetails"
+    <RelativeLayout
+        android:id="@+id/allLayouts"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/dogDescription"
-        android:orientation="vertical">
+        android:layout_height="match_parent"
+        android:visibility="invisible">
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="0.1dp"
-            android:background="#8E8E8E" />
-
-        <TextView
-            android:id="@+id/dogRace"
+        <ImageView
+            android:id="@+id/dogImage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:layout_marginTop="10dp"
-            android:layout_marginBottom="10dp"
-            android:drawablePadding="10dp"
-            android:fontFamily="@font/roboto_light"
-            android:textColor="@color/black"
-            android:textSize="16sp"
-            app:drawableLeftCompat="@drawable/baseline_pets_24"
-            app:drawableStartCompat="@drawable/baseline_pets_24" />
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="20dp"
+            android:adjustViewBounds="true"
+            android:contentDescription="@string/dog_picture"
+            android:maxWidth="250dp"
+            android:maxHeight="150dp"
+            android:scaleType="fitCenter" />
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="0.1dp"
-            android:background="#8E8E8E" />
-
-        <TextView
-            android:id="@+id/dogLocation"
+        <LinearLayout
+            android:id="@+id/dogNameAge"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:layout_marginTop="10dp"
-            android:layout_marginBottom="10dp"
-            android:drawablePadding="10dp"
-            android:fontFamily="@font/roboto_light"
-            android:textColor="@color/black"
-            android:textSize="16sp"
-            app:drawableLeftCompat="@drawable/baseline_room_24"
-            app:drawableStartCompat="@drawable/baseline_room_24" />
+            android:layout_below="@+id/dogImage"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="20dp"
+            android:orientation="vertical">
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="0.1dp"
-            android:background="#8E8E8E" />
+            <TextView
+                android:id="@+id/dogName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:fontFamily="@font/roboto_bold"
+                android:textColor="@color/black"
+                android:textSize="32sp" />
 
-        <TextView
-            android:id="@+id/dogOwner"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:layout_marginTop="10dp"
-            android:layout_marginBottom="10dp"
-            android:drawablePadding="10dp"
-            android:fontFamily="@font/roboto_light"
-            android:textColor="@color/black"
-            android:textSize="16sp"
-            app:drawableLeftCompat="@drawable/baseline_account_circle_24"
-            app:drawableStartCompat="@drawable/baseline_account_circle_24" />
+            <TextView
+                android:id="@+id/dogAge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:textSize="16sp" />
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="0.1dp"
-            android:background="#8E8E8E" />
+        </LinearLayout>
 
         <TextView
-            android:id="@+id/dogContact"
+            android:id="@+id/dogDescription"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:layout_marginTop="10dp"
-            android:layout_marginBottom="10dp"
-            android:drawablePadding="10dp"
+            android:layout_below="@+id/dogNameAge"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="15dp"
+            android:layout_marginBottom="15dp"
             android:fontFamily="@font/roboto_light"
-            android:textColor="@color/link"
-            android:textSize="16sp"
-            app:drawableLeftCompat="@drawable/baseline_call_24"
-            app:drawableStartCompat="@drawable/baseline_call_24" />
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="0.1dp"
-            android:background="#8E8E8E" />
-
-        <TextView
-            android:id="@+id/dogReady"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:layout_marginTop="10dp"
-            android:layout_marginBottom="10dp"
-            android:drawablePadding="10dp"
-            android:fontFamily="@font/roboto_light"
+            android:maxLines="3"
+            android:scrollbars="vertical"
             android:textColor="@color/black"
             android:textSize="16sp" />
 
-        <View
+        <LinearLayout
+            android:id="@+id/specificDetails"
             android:layout_width="match_parent"
-            android:layout_height="0.1dp"
-            android:background="#8E8E8E" />
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/dogDescription"
+            android:orientation="vertical">
 
-    </LinearLayout>
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0.1dp"
+                android:background="#8E8E8E" />
+
+            <TextView
+                android:id="@+id/dogRace"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                android:drawablePadding="10dp"
+                android:fontFamily="@font/roboto_light"
+                android:textColor="@color/black"
+                android:textSize="16sp"
+                app:drawableLeftCompat="@drawable/baseline_pets_24"
+                app:drawableStartCompat="@drawable/baseline_pets_24" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0.1dp"
+                android:background="#8E8E8E" />
+
+            <TextView
+                android:id="@+id/dogLocation"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                android:drawablePadding="10dp"
+                android:fontFamily="@font/roboto_light"
+                android:textColor="@color/black"
+                android:textSize="16sp"
+                app:drawableLeftCompat="@drawable/baseline_room_24"
+                app:drawableStartCompat="@drawable/baseline_room_24" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0.1dp"
+                android:background="#8E8E8E" />
+
+            <TextView
+                android:id="@+id/dogOwner"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                android:drawablePadding="10dp"
+                android:fontFamily="@font/roboto_light"
+                android:textColor="@color/black"
+                android:textSize="16sp"
+                app:drawableLeftCompat="@drawable/baseline_account_circle_24"
+                app:drawableStartCompat="@drawable/baseline_account_circle_24" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0.1dp"
+                android:background="#8E8E8E" />
+
+            <TextView
+                android:id="@+id/dogContact"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                android:drawablePadding="10dp"
+                android:fontFamily="@font/roboto_light"
+                android:textColor="@color/link"
+                android:textSize="16sp"
+                app:drawableLeftCompat="@drawable/baseline_call_24"
+                app:drawableStartCompat="@drawable/baseline_call_24" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0.1dp"
+                android:background="#8E8E8E" />
+
+            <TextView
+                android:id="@+id/dogReady"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                android:drawablePadding="10dp"
+                android:fontFamily="@font/roboto_light"
+                android:textColor="@color/black"
+                android:textSize="16sp" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0.1dp"
+                android:background="#8E8E8E" />
+
+        </LinearLayout>
 
 
-    <ToggleButton
-        android:id="@+id/likeButton"
-        android:layout_width="30dp"
-        android:layout_height="30dp"
-        android:layout_below="@+id/specificDetails"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="20dp"
-        android:text="@string/favorite"
-        android:textOff=""
-        android:textOn=""
-        android:visibility="gone" />
+        <ToggleButton
+            android:id="@+id/likeButton"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_below="@+id/specificDetails"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="20dp"
+            android:text="@string/favorite"
+            android:textOff=""
+            android:textOn=""
+            android:visibility="gone" />
+
+    </RelativeLayout>
+
+    <com.google.android.material.progressindicator.CircularProgressIndicator
+        android:id="@+id/spinner"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:indeterminate="true" />
 
 </RelativeLayout>

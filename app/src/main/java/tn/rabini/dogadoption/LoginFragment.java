@@ -126,12 +126,12 @@ public class LoginFragment extends Fragment {
 
                 spinner.setVisibility(View.VISIBLE);
                 FirebaseAuth.getInstance().sendPasswordResetEmail(emailValue).addOnSuccessListener(aVoid -> {
-                    Snackbar.make(getActivity().findViewById(R.id.coordinatorLayout), requireContext().getString(R.string.reset_sent), Snackbar.LENGTH_LONG)
-                            .setAnchorView(getActivity().findViewById(R.id.bottom_navigation))
+                    Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), requireContext().getString(R.string.reset_sent), Snackbar.LENGTH_LONG)
+                            .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
                             .show();
                     dialogInterface.dismiss();
-                }).addOnFailureListener(e -> Snackbar.make(getActivity().findViewById(R.id.coordinatorLayout), requireContext().getString(R.string.reset_sent), Snackbar.LENGTH_LONG)
-                        .setAnchorView(getActivity().findViewById(R.id.bottom_navigation))
+                }).addOnFailureListener(e -> Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), requireContext().getString(R.string.reset_sent), Snackbar.LENGTH_LONG)
+                        .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
                         .show());
             });
         });

@@ -1,7 +1,6 @@
 package tn.rabini.dogadoption;
 
 import android.os.Bundle;
-
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -11,7 +10,7 @@ import com.rbddevs.splashy.Splashy;
 
 public class MainActivity extends AppCompatActivity {
 
-    private String currentFragment = "ToHome";
+    private BottomNavigationView bottomNavigationView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
                 .setReorderingAllowed(true)
                 .add(R.id.main_fragment, HomeFragment.class, null)
                 .commit();
-        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+        bottomNavigationView = findViewById(R.id.bottom_navigation);
         bottomNavigationView.setOnNavigationItemSelectedListener(item -> {
             int option = item.getItemId();
             toFragment(option == R.id.homeItem
@@ -39,40 +38,53 @@ public class MainActivity extends AppCompatActivity {
             return true;
         });
 
+        bottomNavigationView.setOnNavigationItemReselectedListener(item -> {
+
+        });
+
         getSupportFragmentManager().setFragmentResultListener("flipResult",
                 this,
                 (requestKey, result) -> toFragment(result.getString("flip"), result));
     }
 
     public void toFragment(String fragment, Bundle result) {
-        if (currentFragment.equals(fragment)) {
-            return;
-        }
-        currentFragment = fragment;
         switch (fragment) {
             case "ToLogin":
                 replaceFragment(LoginFragment.class, null);
+                bottomNavigationView.getMenu().findItem(R.id.profileItem).setChecked(true);
                 break;
             case "ToRegister":
                 replaceFragment(RegisterFragment.class, null);
+                bottomNavigationView.getMenu().findItem(R.id.profileItem).setChecked(true);
                 break;
             case "ToProfile":
                 replaceFragment(FirebaseAuth.getInstance().getCurrentUser() == null ? LoginFragment.class : ProfileFragment.class, null);
+                bottomNavigationView.getMenu().findItem(R.id.profileItem).setChecked(true);
                 break;
             case "ToAddDog":
                 replaceFragment(AddDogFragment.class, null);
+                bottomNavigationView.getMenu().findItem(R.id.homeItem).setChecked(true);
                 break;
             case "ToHome":
                 replaceFragment(HomeFragment.class, null);
+                bottomNavigationView.getMenu().findItem(R.id.homeItem).setChecked(true);
                 break;
             case "ToFavorites":
-                replaceFragment(FirebaseAuth.getInstance().getCurrentUser() == null ? LoginFragment.class : FavoritesFragment.class, null);
+                if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+                    replaceFragment(LoginFragment.class, null);
+                    bottomNavigationView.getMenu().findItem(R.id.profileItem).setChecked(true);
+                } else {
+                    replaceFragment(FavoritesFragment.class, null);
+                    bottomNavigationView.getMenu().findItem(R.id.favoritesItem).setChecked(true);
+                }
                 break;
             case "ToDogDetails":
                 replaceFragment(DogDetailsFragment.class, result);
+                bottomNavigationView.getMenu().findItem(R.id.homeItem).setChecked(true);
                 break;
             case "ToEditDog":
                 replaceFragment(EditDogFragment.class, result);
+                bottomNavigationView.getMenu().findItem(R.id.profileItem).setChecked(true);
                 break;
         }
     }

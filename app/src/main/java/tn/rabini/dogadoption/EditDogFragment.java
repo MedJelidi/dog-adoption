@@ -193,27 +193,25 @@ public class EditDogFragment extends Fragment {
                 ref.putFile(imagePath)
                         .addOnSuccessListener(taskSnapshot -> {
                             final Task<Uri> firebaseUri = taskSnapshot.getStorage().getDownloadUrl();
-                            firebaseUri.addOnSuccessListener(uri -> {
-                                FirebaseStorage.getInstance()
-                                        .getReferenceFromUrl(imageValue)
-                                        .delete()
-                                        .addOnSuccessListener(aVoid -> editDog(uri.toString()))
-                                        .addOnFailureListener(e -> {
-                                            spinner.setVisibility(View.INVISIBLE);
-                                            submitCancelLayout.setVisibility(View.VISIBLE);
-                                            submitButton.setEnabled(true);
-                                            Snackbar.make(getActivity().findViewById(R.id.coordinatorLayout), e.getMessage(), Snackbar.LENGTH_LONG)
-                                                    .setAnchorView(getActivity().findViewById(R.id.bottom_navigation))
-                                                    .show();
-                                        });
-                            });
+                            firebaseUri.addOnSuccessListener(uri -> FirebaseStorage.getInstance()
+                                    .getReferenceFromUrl(imageValue)
+                                    .delete()
+                                    .addOnSuccessListener(aVoid -> editDog(uri.toString()))
+                                    .addOnFailureListener(e -> {
+                                        spinner.setVisibility(View.INVISIBLE);
+                                        submitCancelLayout.setVisibility(View.VISIBLE);
+                                        submitButton.setEnabled(true);
+                                        Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), e.getMessage(), Snackbar.LENGTH_LONG)
+                                                .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
+                                                .show();
+                                    }));
                         })
                         .addOnFailureListener(e -> {
                             spinner.setVisibility(View.INVISIBLE);
                             submitCancelLayout.setVisibility(View.VISIBLE);
                             submitButton.setEnabled(true);
-                            Snackbar.make(getActivity().findViewById(R.id.coordinatorLayout), e.getMessage(), Snackbar.LENGTH_LONG)
-                                    .setAnchorView(getActivity().findViewById(R.id.bottom_navigation))
+                            Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), e.getMessage(), Snackbar.LENGTH_LONG)
+                                    .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
                                     .show();
                         });
             }
@@ -250,12 +248,12 @@ public class EditDogFragment extends Fragment {
                                                     spinner.setVisibility(View.INVISIBLE);
                                                     submitCancelLayout.setVisibility(View.VISIBLE);
                                                     submitButton.setEnabled(true);
-                                                    Snackbar.make(getActivity().findViewById(R.id.coordinatorLayout), error1.getMessage(), Snackbar.LENGTH_LONG)
-                                                            .setAnchorView(getActivity().findViewById(R.id.bottom_navigation))
+                                                    Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), error1.getMessage(), Snackbar.LENGTH_LONG)
+                                                            .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
                                                             .show();
                                                 } else {
-                                                    Snackbar.make(getActivity().findViewById(R.id.coordinatorLayout), "Dog updated successfully!", Snackbar.LENGTH_LONG)
-                                                            .setAnchorView(getActivity().findViewById(R.id.bottom_navigation))
+                                                    Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), "Dog updated successfully!", Snackbar.LENGTH_LONG)
+                                                            .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
                                                             .show();
                                                     switchTo();
                                                 }
@@ -284,8 +282,8 @@ public class EditDogFragment extends Fragment {
         descriptionLayout.setError(null);
         locationLayout.setError(null);
         errorView.setVisibility(View.INVISIBLE);
-        if (nameValue == null || nameValue.length() < 2 || nameValue.length() > 10) {
-            nameLayout.setError("Name should be between 2 and 10 characters.");
+        if (nameValue == null || nameValue.length() < 2 || nameValue.length() > 20) {
+            nameLayout.setError("Name should be between 2 and 20 characters.");
             return false;
         }
         if (raceValue == null || raceValue.length() == 0) {

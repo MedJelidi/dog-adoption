@@ -112,15 +112,17 @@ public class RegisterFragment extends Fragment {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                     User user = dataSnapshot.getValue(User.class);
-                    if (user.getPhone().equals(phoneValue) || user.getUsername().equals(usernameValue)) {
-                        if (user.getPhone().equals(phoneValue)) {
-                            phoneLayout.setError(getString(R.string.phone_exists));
-                        } else {
-                            usernameLayout.setError(getString(R.string.username_exists));
+                    if (user != null) {
+                        if (user.getPhone().equals(phoneValue) || user.getUsername().equals(usernameValue)) {
+                            if (user.getPhone().equals(phoneValue)) {
+                                phoneLayout.setError(getString(R.string.phone_exists));
+                            } else {
+                                usernameLayout.setError(getString(R.string.username_exists));
+                            }
+                            spinner.setVisibility(View.GONE);
+                            signUpButton.setEnabled(true);
+                            return;
                         }
-                        spinner.setVisibility(View.GONE);
-                        signUpButton.setEnabled(true);
-                        return;
                     }
                 }
                 mAuth.createUserWithEmailAndPassword(emailValue, passwordValue)
@@ -134,16 +136,16 @@ public class RegisterFragment extends Fragment {
                                         .addOnSuccessListener(aVoid -> mAuth.getCurrentUser().sendEmailVerification()
                                                 .addOnSuccessListener(aVoid1 -> {
                                                     spinner.setVisibility(View.INVISIBLE);
-                                                    Snackbar.make(getActivity().findViewById(R.id.coordinatorLayout), "An email verification has been sent. Please verify your email.", Snackbar.LENGTH_LONG)
-                                                            .setAnchorView(getActivity().findViewById(R.id.bottom_navigation))
+                                                    Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), "An email verification has been sent. Please verify your email.", Snackbar.LENGTH_LONG)
+                                                            .setAnchorView(requireView().findViewById(R.id.bottom_navigation))
                                                             .show();
                                                     signUpButton.setEnabled(true);
                                                     switchTo("ToProfile");
                                                 })
                                                 .addOnFailureListener(e -> {
                                                     spinner.setVisibility(View.INVISIBLE);
-                                                    Snackbar.make(getActivity().findViewById(R.id.coordinatorLayout), e.getMessage(), Snackbar.LENGTH_LONG)
-                                                            .setAnchorView(getActivity().findViewById(R.id.bottom_navigation))
+                                                    Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), e.getMessage(), Snackbar.LENGTH_LONG)
+                                                            .setAnchorView(requireView().findViewById(R.id.bottom_navigation))
                                                             .show();
                                                     signUpButton.setEnabled(true);
                                                     switchTo("ToProfile");

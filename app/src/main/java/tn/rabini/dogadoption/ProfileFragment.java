@@ -11,6 +11,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -23,12 +24,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.CircularProgressDrawable;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
@@ -51,7 +51,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import de.hdodenhof.circleimageview.CircleImageView;
 import tn.rabini.dogadoption.models.User;
 
 public class ProfileFragment extends Fragment {
@@ -60,12 +59,12 @@ public class ProfileFragment extends Fragment {
     private MyDogAdapter myDogAdapter;
     private DatabaseReference ref;
     private TextView usernameView, phoneView, emailView;
-    private CircleImageView profileImage;
+    private ImageView profileImage;
     private CircularProgressIndicator spinner;
     private RelativeLayout allLayouts;
     private ActivityResultLauncher<Intent> startImageIntent;
     private Uri imagePath;
-    private LinearLayout topBar;
+    private LinearLayout topBar, myDogsLayout;
 
     public ProfileFragment() {
         // Required empty public constructor
@@ -91,70 +90,72 @@ public class ProfileFragment extends Fragment {
                         ref.putFile(imagePath)
                                 .addOnSuccessListener(taskSnapshot -> {
                                     final Task<Uri> firebaseUri = taskSnapshot.getStorage().getDownloadUrl();
-                                    firebaseUri.addOnSuccessListener(uri -> {
-                                        FirebaseDatabase.getInstance().getReference().child("Users").child(currentUser.getUid())
-                                                .addListenerForSingleValueEvent(new ValueEventListener() {
-                                                    @Override
-                                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                                        if (getActivity() == null) {
-                                                            return;
-                                                        }
-                                                        User user = snapshot.getValue(User.class);
-                                                        if (user != null) {
-                                                            FirebaseStorage.getInstance()
-                                                                    .getReferenceFromUrl(user.getPicture())
-                                                                    .delete()
-                                                                    .addOnSuccessListener(aVoid -> {
-                                                                        DatabaseReference userRef = FirebaseDatabase.getInstance()
-                                                                                .getReference("Users")
-                                                                                .child(currentUser.getUid());
-                                                                        Map<String, Object> userUpdates = new HashMap<>();
-                                                                        userUpdates.put("picture", uri.toString());
-                                                                        userRef.updateChildren(userUpdates, (error, ref1) -> {
-                                                                            if (error != null) {
-                                                                                Snackbar.make(getActivity().findViewById(R.id.coordinatorLayout), error.getMessage(), Snackbar.LENGTH_LONG)
-                                                                                        .setAnchorView(getActivity().findViewById(R.id.bottom_navigation))
-                                                                                        .show();
-                                                                            } else {
-                                                                                Glide.with(getContext())
-                                                                                        .load(uri.toString())
-                                                                                        .fitCenter()
-                                                                                        .diskCacheStrategy(DiskCacheStrategy.ALL)
-                                                                                        .error(R.drawable.ic_baseline_error_24)
-                                                                                        .into(profileImage);
-                                                                                Snackbar.make(getActivity().findViewById(R.id.coordinatorLayout), getString(R.string.image_updated), Snackbar.LENGTH_LONG)
-                                                                                        .setAnchorView(getActivity().findViewById(R.id.bottom_navigation))
-                                                                                        .show();
-                                                                            }
-                                                                            spinner.setVisibility(View.GONE);
-                                                                            allLayouts.setVisibility(View.VISIBLE);
-                                                                            setHasOptionsMenu(true);
-                                                                        });
-                                                                    })
-                                                                    .addOnFailureListener(e -> {
-                                                                        Snackbar.make(getActivity().findViewById(R.id.coordinatorLayout), e.getMessage(), Snackbar.LENGTH_LONG)
-                                                                                .setAnchorView(getActivity().findViewById(R.id.bottom_navigation))
-                                                                                .show();
+                                    firebaseUri.addOnSuccessListener(uri -> FirebaseDatabase.getInstance().getReference().child("Users").child(currentUser.getUid())
+                                            .addListenerForSingleValueEvent(new ValueEventListener() {
+                                                @Override
+                                                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                                    if (getActivity() == null) {
+                                                        return;
+                                                    }
+                                                    User user = snapshot.getValue(User.class);
+                                                    if (user != null) {
+                                                        FirebaseStorage.getInstance()
+                                                                .getReferenceFromUrl(user.getPicture())
+                                                                .delete()
+                                                                .addOnSuccessListener(aVoid -> {
+                                                                    DatabaseReference userRef = FirebaseDatabase.getInstance()
+                                                                            .getReference("Users")
+                                                                            .child(currentUser.getUid());
+                                                                    Map<String, Object> userUpdates = new HashMap<>();
+                                                                    userUpdates.put("picture", uri.toString());
+                                                                    userRef.updateChildren(userUpdates, (error, ref1) -> {
+                                                                        if (error != null) {
+                                                                            Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), error.getMessage(), Snackbar.LENGTH_LONG)
+                                                                                    .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
+                                                                                    .show();
+                                                                        } else {
+                                                                            CircularProgressDrawable circularProgressDrawable = new CircularProgressDrawable(requireContext());
+                                                                            circularProgressDrawable.setStrokeWidth(5f);
+                                                                            circularProgressDrawable.setCenterRadius(30f);
+                                                                            circularProgressDrawable.start();
+
+                                                                            Glide.with(requireContext())
+                                                                                    .load(uri.toString())
+                                                                                    .fitCenter()
+                                                                                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                                                                                    .placeholder(circularProgressDrawable)
+                                                                                    .circleCrop()
+                                                                                    .error(R.drawable.ic_baseline_error_24)
+                                                                                    .into(profileImage);
+                                                                            Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), getString(R.string.image_updated), Snackbar.LENGTH_LONG)
+                                                                                    .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
+                                                                                    .show();
+                                                                        }
+                                                                        spinner.setVisibility(View.GONE);
+                                                                        allLayouts.setVisibility(View.VISIBLE);
+                                                                        setHasOptionsMenu(true);
                                                                     });
-                                                        }
+                                                                })
+                                                                .addOnFailureListener(e -> Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), e.getMessage(), Snackbar.LENGTH_LONG)
+                                                                        .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
+                                                                        .show());
                                                     }
+                                                }
 
-                                                    @Override
-                                                    public void onCancelled(@NonNull DatabaseError error) {
-                                                        Snackbar.make(getActivity().findViewById(R.id.coordinatorLayout), error.getMessage(), Snackbar.LENGTH_LONG)
-                                                                .setAnchorView(getActivity().findViewById(R.id.bottom_navigation))
-                                                                .show();
-                                                    }
-                                                });
-
-                                    });
+                                                @Override
+                                                public void onCancelled(@NonNull DatabaseError error) {
+                                                    Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), error.getMessage(), Snackbar.LENGTH_LONG)
+                                                            .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
+                                                            .show();
+                                                }
+                                            }));
                                 })
                                 .addOnFailureListener(e -> {
                                     spinner.setVisibility(View.GONE);
                                     allLayouts.setVisibility(View.VISIBLE);
                                     setHasOptionsMenu(true);
-                                    Snackbar.make(getActivity().findViewById(R.id.coordinatorLayout), e.getMessage(), Snackbar.LENGTH_LONG)
-                                            .setAnchorView(getActivity().findViewById(R.id.bottom_navigation))
+                                    Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), e.getMessage(), Snackbar.LENGTH_LONG)
+                                            .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
                                             .show();
                                 });
                     }
@@ -172,12 +173,21 @@ public class ProfileFragment extends Fragment {
                             usernameView.setText(user.getUsername());
                             phoneView.setText(user.getPhone());
                             emailView.setText(user.getEmail());
-                            Glide.with(getContext())
+
+                            CircularProgressDrawable circularProgressDrawable = new CircularProgressDrawable(requireContext());
+                            circularProgressDrawable.setStrokeWidth(5f);
+                            circularProgressDrawable.setCenterRadius(30f);
+                            circularProgressDrawable.start();
+
+                            Glide.with(requireContext())
                                     .load(user.getPicture())
                                     .fitCenter()
                                     .diskCacheStrategy(DiskCacheStrategy.ALL)
+                                    .placeholder(circularProgressDrawable)
+                                    .circleCrop()
                                     .error(R.drawable.ic_baseline_error_24)
                                     .into(profileImage);
+
                             spinner.setVisibility(View.GONE);
                             allLayouts.setVisibility(View.VISIBLE);
                             setHasOptionsMenu(true);
@@ -199,13 +209,13 @@ public class ProfileFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        ((AppCompatActivity) getActivity()).getSupportActionBar().show();
+        ((AppCompatActivity) requireActivity()).getSupportActionBar().show();
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        ((AppCompatActivity) getActivity()).getSupportActionBar().hide();
+        ((AppCompatActivity) requireActivity()).getSupportActionBar().hide();
         myDogAdapter.stopListening();
     }
 
@@ -221,6 +231,7 @@ public class ProfileFragment extends Fragment {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_profile, container, false);
         topBar = v.findViewById(R.id.topBar);
+        myDogsLayout = v.findViewById(R.id.myDogsLayout);
         Button resendButton = v.findViewById(R.id.resendButton);
         spinner = v.findViewById(R.id.spinner);
         allLayouts = v.findViewById(R.id.allLayouts);
@@ -233,7 +244,7 @@ public class ProfileFragment extends Fragment {
         FirebaseRecyclerOptions<String> options = new FirebaseRecyclerOptions.Builder<String>()
                 .setQuery(ref, String.class)
                 .build();
-        myDogAdapter = new MyDogAdapter(options, requireContext());
+        myDogAdapter = new MyDogAdapter(options, requireContext(), requireActivity());
         myDogList.setAdapter(myDogAdapter);
         Button logOutButton = v.findViewById(R.id.logOutButton);
         logOutButton.setOnClickListener(view -> {
@@ -244,16 +255,16 @@ public class ProfileFragment extends Fragment {
         if (mAuth.getCurrentUser() != null) {
             if (!mAuth.getCurrentUser().isEmailVerified()) {
                 topBar.setVisibility(View.VISIBLE);
-                myDogList.setVisibility(View.GONE);
+                myDogsLayout.setVisibility(View.GONE);
                 resendButton.setOnClickListener(view -> mAuth.getCurrentUser().sendEmailVerification()
                         .addOnSuccessListener(aVoid -> {
                             topBar.setVisibility(View.GONE);
-                            Snackbar.make(getActivity().findViewById(R.id.coordinatorLayout), "An email verification has been sent. Please verify your email.", Snackbar.LENGTH_LONG)
-                                    .setAnchorView(getActivity().findViewById(R.id.bottom_navigation))
+                            Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), "An email verification has been sent. Please verify your email.", Snackbar.LENGTH_LONG)
+                                    .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
                                     .show();
                         })
-                        .addOnFailureListener(e -> Snackbar.make(getActivity().findViewById(R.id.coordinatorLayout), e.getMessage(), Snackbar.LENGTH_LONG)
-                                .setAnchorView(getActivity().findViewById(R.id.bottom_navigation))
+                        .addOnFailureListener(e -> Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), e.getMessage(), Snackbar.LENGTH_LONG)
+                                .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
                                 .show()));
             }
         }
@@ -262,7 +273,7 @@ public class ProfileFragment extends Fragment {
 
     @Override
     public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
-        getActivity().getMenuInflater().inflate(R.menu.profile_menu, menu);
+        requireActivity().getMenuInflater().inflate(R.menu.profile_menu, menu);
         super.onCreateOptionsMenu(menu, inflater);
     }
 
@@ -282,7 +293,7 @@ public class ProfileFragment extends Fragment {
     }
 
     private void editUsername() {
-        AlertDialog usernameBuilder = new MaterialAlertDialogBuilder(getContext())
+        AlertDialog usernameBuilder = new MaterialAlertDialogBuilder(requireContext())
                 .setView(R.layout.change_username)
                 .setPositiveButton("Save", null)
                 .setNegativeButton("Cancel", (dialog, which) -> dialog.cancel())
@@ -324,8 +335,8 @@ public class ProfileFragment extends Fragment {
                             } else {
                                 dialogInterface.dismiss();
                                 usernameView.setText(usernameValue);
-                                Snackbar.make(getActivity().findViewById(R.id.coordinatorLayout), getString(R.string.username_updated), Snackbar.LENGTH_LONG)
-                                        .setAnchorView(getActivity().findViewById(R.id.bottom_navigation))
+                                Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), getString(R.string.username_updated), Snackbar.LENGTH_LONG)
+                                        .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
                                         .show();
                             }
                             spinner.setVisibility(View.GONE);
@@ -352,7 +363,7 @@ public class ProfileFragment extends Fragment {
     }
 
     private void editPhone() {
-        AlertDialog phoneBuilder = new MaterialAlertDialogBuilder(getContext())
+        AlertDialog phoneBuilder = new MaterialAlertDialogBuilder(requireContext())
                 .setView(R.layout.change_phone)
                 .setPositiveButton("Save", null)
                 .setNegativeButton("Cancel", (dialog, which) -> dialog.cancel())
@@ -397,8 +408,8 @@ public class ProfileFragment extends Fragment {
                                 spinner.setVisibility(View.GONE);
                                 dialogInterface.dismiss();
                                 phoneView.setText(newPhoneInput.getText().toString().trim());
-                                Snackbar.make(getActivity().findViewById(R.id.coordinatorLayout), getString(R.string.phone_updated), Snackbar.LENGTH_LONG)
-                                        .setAnchorView(getActivity().findViewById(R.id.bottom_navigation))
+                                Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), getString(R.string.phone_updated), Snackbar.LENGTH_LONG)
+                                        .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
                                         .show();
                             }
                         });
@@ -424,7 +435,7 @@ public class ProfileFragment extends Fragment {
     }
 
     private void editPassword() {
-        AlertDialog passwordBuilder = new MaterialAlertDialogBuilder(getContext())
+        AlertDialog passwordBuilder = new MaterialAlertDialogBuilder(requireContext())
                 .setView(R.layout.change_password)
                 .setPositiveButton("Save", null)
                 .setNegativeButton("Cancel", (dialog, which) -> dialog.cancel())
@@ -455,8 +466,8 @@ public class ProfileFragment extends Fragment {
                                         .addOnSuccessListener(aVoid1 -> {
                                             spinner.setVisibility(View.GONE);
                                             dialogInterface.dismiss();
-                                            Snackbar.make(getActivity().findViewById(R.id.coordinatorLayout), "Password updated successfully!", Snackbar.LENGTH_LONG)
-                                                    .setAnchorView(getActivity().findViewById(R.id.bottom_navigation))
+                                            Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), "Password updated successfully!", Snackbar.LENGTH_LONG)
+                                                    .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
                                                     .show();
                                         })
                                         .addOnFailureListener(e -> {

@@ -12,6 +12,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.CircularProgressDrawable;
 
@@ -20,6 +21,7 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -28,15 +30,20 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 
+import java.util.Objects;
+
 import tn.rabini.dogadoption.models.Dog;
 
 public class MyDogAdapter extends FirebaseRecyclerAdapter<String, MyDogAdapter.MyDogViewHolder> {
 
     private final Context context;
+    private final FragmentActivity activity;
 
-    public MyDogAdapter(@NonNull FirebaseRecyclerOptions<String> options, Context context) {
+    public MyDogAdapter(@NonNull FirebaseRecyclerOptions<String> options, Context context, FragmentActivity activity) {
         super(options);
         this.context = context;
+        this.activity = activity;
+
     }
 
     @Override
@@ -127,11 +134,18 @@ public class MyDogAdapter extends FirebaseRecyclerAdapter<String, MyDogAdapter.M
                                                                                                                     .getReference("Dogs")
                                                                                                                     .child(model)
                                                                                                                     .removeValue()
-                                                                                                                    .addOnSuccessListener(aVoid2 -> Toast.makeText(context, "Dog deleted successfully!", Toast.LENGTH_LONG).show())
-                                                                                                                    .addOnFailureListener(e -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show())
-                                                                                                                    .addOnFailureListener(e -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show()))
-                                                                                                            .addOnFailureListener(e -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show()))
-                                                                                                    .addOnFailureListener(e -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show());
+                                                                                                                    .addOnSuccessListener(aVoid2 -> Snackbar.make(activity.findViewById(R.id.coordinatorLayout), "Dog deleted successfully!", Snackbar.LENGTH_LONG)
+                                                                                                                            .setAnchorView(activity.findViewById(R.id.bottom_navigation))
+                                                                                                                            .show())
+                                                                                                                    .addOnFailureListener(e -> Snackbar.make(activity.findViewById(R.id.coordinatorLayout), Objects.requireNonNull(e.getMessage()), Snackbar.LENGTH_LONG)
+                                                                                                                            .setAnchorView(activity.findViewById(R.id.bottom_navigation))
+                                                                                                                            .show()))
+                                                                                                            .addOnFailureListener(e -> Snackbar.make(activity.findViewById(R.id.coordinatorLayout), Objects.requireNonNull(e.getMessage()), Snackbar.LENGTH_LONG)
+                                                                                                                    .setAnchorView(activity.findViewById(R.id.bottom_navigation))
+                                                                                                                    .show()))
+                                                                                                    .addOnFailureListener(e -> Snackbar.make(activity.findViewById(R.id.coordinatorLayout), Objects.requireNonNull(e.getMessage()), Snackbar.LENGTH_LONG)
+                                                                                                            .setAnchorView(activity.findViewById(R.id.bottom_navigation))
+                                                                                                            .show());
                                                                                         }
                                                                                     }
                                                                                 }

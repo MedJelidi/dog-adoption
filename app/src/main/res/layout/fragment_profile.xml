@@ -59,13 +59,11 @@
             android:layout_margin="15dp"
             android:orientation="horizontal">
 
-            <de.hdodenhof.circleimageview.CircleImageView
+            <ImageView
                 android:id="@+id/profileImage"
                 android:layout_width="100dp"
                 android:layout_height="100dp"
-                android:src="@drawable/default_profile_picture"
-                app:civ_border_color="@color/white"
-                app:civ_border_width="2dp" />
+                android:contentDescription="@string/profile" />
 
             <RelativeLayout
                 android:layout_width="match_parent"
@@ -121,32 +119,40 @@
             android:layout_below="@+id/secondSection"
             android:orientation="vertical">
 
-            <View
+            <LinearLayout
+                android:id="@+id/myDogsLayout"
                 android:layout_width="match_parent"
-                android:layout_height="0.1dp"
-                android:background="#8E8E8E" />
-
-            <TextView
-                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_margin="10dp"
-                android:fontFamily="@font/roboto_regular"
-                android:text="@string/my_dogs"
-                android:textColor="#252F6A"
-                android:textSize="20sp" />
+                android:orientation="vertical">
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="0.1dp"
-                android:background="#8E8E8E" />
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="0.1dp"
+                    android:background="#8E8E8E" />
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/myDogList"
-                android:layout_width="match_parent"
-                android:layout_height="250dp"
-                android:layout_marginTop="10dp"
-                android:layout_marginBottom="10dp" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_margin="10dp"
+                    android:fontFamily="@font/roboto_regular"
+                    android:text="@string/my_dogs"
+                    android:textColor="#252F6A"
+                    android:textSize="20sp" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="0.1dp"
+                    android:background="#8E8E8E" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/myDogList"
+                    android:layout_width="match_parent"
+                    android:layout_height="250dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginBottom="10dp" />
+
+            </LinearLayout>
 
             <View
                 android:layout_width="match_parent"

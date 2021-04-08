@@ -8,16 +8,18 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.CircularProgressDrawable;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -35,10 +37,12 @@ import tn.rabini.dogadoption.models.User;
 public class LikedDogAdapter extends FirebaseRecyclerAdapter<String, LikedDogAdapter.LikedDogViewHolder> {
 
     private final Context context;
+    private final FragmentActivity activity;
 
-    public LikedDogAdapter(@NonNull FirebaseRecyclerOptions<String> options, Context context) {
+    public LikedDogAdapter(@NonNull FirebaseRecyclerOptions<String> options, Context context, FragmentActivity activity) {
         super(options);
         this.context = context;
+        this.activity = activity;
     }
 
     @Override
@@ -52,9 +56,15 @@ public class LikedDogAdapter extends FirebaseRecyclerAdapter<String, LikedDogAda
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         Dog dog = snapshot.getValue(Dog.class);
                         if (dog != null) {
+                            CircularProgressDrawable circularProgressDrawable = new CircularProgressDrawable(context);
+                            circularProgressDrawable.setStrokeWidth(5f);
+                            circularProgressDrawable.setCenterRadius(30f);
+                            circularProgressDrawable.start();
+
                             Glide.with(context)
                                     .load(dog.getImage())
                                     .fitCenter()
+                                    .placeholder(circularProgressDrawable)
                                     .diskCacheStrategy(DiskCacheStrategy.ALL)
                                     .error(R.drawable.ic_baseline_error_24)
                                     .into(holder.dogImage);
@@ -129,7 +139,13 @@ public class LikedDogAdapter extends FirebaseRecyclerAdapter<String, LikedDogAda
                                     .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
                                     .updateChildren(userUpdates, (error, ref) -> {
                                         if (error != null) {
-                                            Toast.makeText(context, error.getMessage(), Toast.LENGTH_LONG).show();
+                                            Snackbar.make(activity.findViewById(R.id.coordinatorLayout), error.getMessage(), Snackbar.LENGTH_LONG)
+                                                    .setAnchorView(activity.findViewById(R.id.bottom_navigation))
+                                                    .show();
+                                        } else {
+                                            Snackbar.make(activity.findViewById(R.id.coordinatorLayout), "Dog removed from favorites!", Snackbar.LENGTH_LONG)
+                                                    .setAnchorView(activity.findViewById(R.id.bottom_navigation))
+                                                    .show();
                                         }
                                     });
                         }

@@ -79,7 +79,8 @@
             android:id="@+id/passwordLoginInput"
             android:layout_width="250dp"
             android:layout_height="wrap_content"
-            android:hint="@string/password" />
+            android:hint="@string/password"
+            android:inputType="textPassword" />
 
     </com.google.android.material.textfield.TextInputLayout>
 

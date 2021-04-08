@@ -59,20 +59,17 @@ public class FavoritesFragment extends Fragment {
         FirebaseRecyclerOptions<String> options = new FirebaseRecyclerOptions.Builder<String>()
                 .setQuery(ref, String.class)
                 .build();
-        likedDogAdapter = new LikedDogAdapter(options, requireContext()) {
+        likedDogAdapter = new LikedDogAdapter(options, requireContext(), requireActivity()) {
             @Override
             public void onDataChanged() {
                 super.onDataChanged();
                 spinner.setVisibility(View.GONE);
                 if (getItemCount() == 0) {
                     noLikeLayout.setVisibility(View.VISIBLE);
-                    dogListLink.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            Bundle flipBundle = new Bundle();
-                            flipBundle.putString("flip", "ToHome");
-                            getParentFragmentManager().setFragmentResult("flipResult", flipBundle);
-                        }
+                    dogListLink.setOnClickListener(view -> {
+                        Bundle flipBundle = new Bundle();
+                        flipBundle.putString("flip", "ToHome");
+                        getParentFragmentManager().setFragmentResult("flipResult", flipBundle);
                     });
                 } else {
                     dogList.setVisibility(View.VISIBLE);

@@ -207,8 +207,8 @@ public class AddDogFragment extends Fragment {
                                                                         .setValue(dogs);
                                                             }
                                                             spinner.setVisibility(View.INVISIBLE);
-                                                            Snackbar.make(getActivity().findViewById(R.id.coordinatorLayout), "Dog added successfully!", Snackbar.LENGTH_LONG)
-                                                                    .setAnchorView(getActivity().findViewById(R.id.bottom_navigation))
+                                                            Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), "Dog added successfully!", Snackbar.LENGTH_LONG)
+                                                                    .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
                                                                     .show();
                                                             switchTo();
                                                         }
@@ -249,8 +249,8 @@ public class AddDogFragment extends Fragment {
         raceLayout.setError(null);
         ageLayout.setError(null);
         errorView.setVisibility(View.INVISIBLE);
-        if (nameValue == null || nameValue.length() < 2 || nameValue.length() > 10) {
-            nameLayout.setError("Name should be between 2 and 10 characters.");
+        if (nameValue == null || nameValue.length() < 2 || nameValue.length() > 20) {
+            nameLayout.setError("Name should be between 2 and 20 characters.");
             return false;
         }
         if (raceValue == null || raceValue.length() == 0) {
