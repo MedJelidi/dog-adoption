@@ -98,4 +98,7 @@
     <string name="checkout_some_dogs">Checkout some dogs&#160;</string>
     <string name="here">here</string>
     <string name="arrow_back">arrow back</string>
+    <string name="dogs">Dogs</string>
+    <string name="login_to_show">(Login to show)</string>
+    <string name="verify_to_show">(Verify your email to show)</string>
 </resources>

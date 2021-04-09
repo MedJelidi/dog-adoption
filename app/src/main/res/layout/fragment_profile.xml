@@ -17,7 +17,7 @@
         android:id="@+id/allLayouts"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="gone">
+        android:visibility="invisible">
 
         <LinearLayout
             android:id="@+id/topBar"
@@ -59,11 +59,19 @@
             android:layout_margin="15dp"
             android:orientation="horizontal">
 
-            <ImageView
-                android:id="@+id/profileImage"
-                android:layout_width="100dp"
-                android:layout_height="100dp"
-                android:contentDescription="@string/profile" />
+            <RelativeLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="4dp"
+                android:background="@drawable/round_border_style">
+
+                <ImageView
+                    android:id="@+id/profileImage"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:contentDescription="@string/profile" />
+
+            </RelativeLayout>
 
             <RelativeLayout
                 android:layout_width="match_parent"
@@ -89,7 +97,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@+id/firstSection"
-            android:layout_margin="15dp"
+            android:layout_margin="10dp"
             android:orientation="vertical">
 
             <TextView
@@ -136,7 +144,7 @@
                     android:layout_gravity="center_horizontal"
                     android:layout_margin="10dp"
                     android:fontFamily="@font/roboto_regular"
-                    android:text="@string/my_dogs"
+                    android:text="@string/dogs"
                     android:textColor="#252F6A"
                     android:textSize="20sp" />
 

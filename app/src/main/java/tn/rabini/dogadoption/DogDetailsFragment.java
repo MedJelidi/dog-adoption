@@ -5,7 +5,6 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -47,12 +46,11 @@ import tn.rabini.dogadoption.models.User;
 
 public class DogDetailsFragment extends Fragment {
 
-    private String id, name, race, age, gender, description, image, location, owner;
+    private String id, name, race, age, gender, description, image, location, owner, contactNumber;
     private int previousFragment;
     private ToggleButton likeButton;
     private TextView dogOwner, dogContact;
     private FirebaseAuth mAuth;
-    private String contactNumber;
     private boolean ready;
     private CircularProgressIndicator spinner;
     private RelativeLayout allLayouts;
@@ -98,6 +96,7 @@ public class DogDetailsFragment extends Fragment {
         dogOwner = v.findViewById(R.id.dogOwner);
         dogContact = v.findViewById(R.id.dogContact);
         dogDescription.setMovementMethod(new ScrollingMovementMethod());
+        mAuth = FirebaseAuth.getInstance();
 
         arrowBack.setOnClickListener(view -> {
             switch (previousFragment) {
@@ -152,12 +151,19 @@ public class DogDetailsFragment extends Fragment {
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        Log.v("USEEERRRRRR", snapshot.getValue().toString());
                         User user = snapshot.getValue(User.class);
                         if (user != null) {
+                            if (mAuth.getCurrentUser() == null) {
+                                dogOwner.setText(getString(R.string.login_to_show));
+                                dogContact.setText(getString(R.string.login_to_show));
+                            } else if (!mAuth.getCurrentUser().isEmailVerified()) {
+                                dogOwner.setText(getString(R.string.verify_to_show));
+                                dogContact.setText(getString(R.string.verify_to_show));
+                            } else {
+                                dogOwner.setText(user.getUsername());
+                                dogContact.setText(user.getPhone());
+                            }
                             contactNumber = user.getPhone();
-                            dogOwner.setText(user.getUsername());
-                            dogContact.setText(user.getPhone());
 
                             Glide.with(requireContext())
                                     .load(image)
@@ -190,16 +196,23 @@ public class DogDetailsFragment extends Fragment {
                 });
 
 
-        // DIAL INTENT ON CLICK NUMBER
-        dogContact.setOnClickListener(view -> {
-            Intent dialIntent = new Intent();
-            dialIntent.setAction(Intent.ACTION_DIAL);
-            dialIntent.setData(Uri.parse("tel:" + contactNumber));
-            startActivity(dialIntent);
-        });
+        if (mAuth.getCurrentUser() != null && mAuth.getCurrentUser().isEmailVerified()) {
+            dogOwner.setOnClickListener(view -> {
+                Bundle flipBundle = new Bundle();
+                flipBundle.putString("flip", "ToProfile");
+                flipBundle.putString("userID", owner);
+                getParentFragmentManager().setFragmentResult("flipResult", flipBundle);
+            });
+
+            dogContact.setOnClickListener(view -> {
+                Intent dialIntent = new Intent();
+                dialIntent.setAction(Intent.ACTION_DIAL);
+                dialIntent.setData(Uri.parse("tel:" + contactNumber));
+                startActivity(dialIntent);
+            });
+        }
 
         // CHECK IF DOG ALREADY LIKED OR NOT
-        mAuth = FirebaseAuth.getInstance();
         if (mAuth.getCurrentUser() == null) {
             likeButton.setBackgroundResource(R.drawable.ic_baseline_favorite_border_24);
             likeButton.setVisibility(View.VISIBLE);
@@ -339,6 +352,8 @@ public class DogDetailsFragment extends Fragment {
     private void switchTo(String fragmentName) {
         Bundle flipBundle = new Bundle();
         flipBundle.putString("flip", fragmentName);
+        if (fragmentName.equals("ToProfile"))
+            flipBundle.putString("userID", owner);
         getParentFragmentManager().setFragmentResult("flipResult", flipBundle);
     }
 }

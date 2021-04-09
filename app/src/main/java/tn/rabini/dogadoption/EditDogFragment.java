@@ -274,6 +274,7 @@ public class EditDogFragment extends Fragment {
     private void switchTo() {
         Bundle flipBundle = new Bundle();
         flipBundle.putString("flip", "ToProfile");
+        flipBundle.putString("userID", mAuth.getCurrentUser().getUid());
         getParentFragmentManager().setFragmentResult("flipResult", flipBundle);
     }
 

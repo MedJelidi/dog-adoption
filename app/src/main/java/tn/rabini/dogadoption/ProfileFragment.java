@@ -65,6 +65,8 @@ public class ProfileFragment extends Fragment {
     private ActivityResultLauncher<Intent> startImageIntent;
     private Uri imagePath;
     private LinearLayout topBar;
+    private String userID;
+    private boolean isUser = false;
 
     public ProfileFragment() {
         // Required empty public constructor
@@ -108,66 +110,73 @@ public class ProfileFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (getArguments() != null)
+            userID = getArguments().getString("userID");
+
         mAuth = FirebaseAuth.getInstance();
         currentUser = mAuth.getCurrentUser();
 
-        startImageIntent = registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-                result -> {
-                    if (result != null
-                            && result.getResultCode() == Activity.RESULT_OK
-                            && result.getData() != null) {
-                        imagePath = result.getData().getData();
-                        StorageReference ref = FirebaseStorage.getInstance().getReference().child("images/" + UUID.randomUUID().toString());
-                        allLayouts.setVisibility(View.GONE);
-                        setHasOptionsMenu(false);
-                        spinner.setVisibility(View.VISIBLE);
-                        ref.putFile(imagePath)
-                                .addOnSuccessListener(taskSnapshot -> {
-                                    final Task<Uri> firebaseUri = taskSnapshot.getStorage().getDownloadUrl();
-                                    firebaseUri.addOnSuccessListener(uri -> FirebaseDatabase.getInstance().getReference().child("Users").child(currentUser.getUid())
-                                            .addListenerForSingleValueEvent(new ValueEventListener() {
-                                                @Override
-                                                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                                    if (getActivity() == null) {
-                                                        return;
-                                                    }
-                                                    User user = snapshot.getValue(User.class);
-                                                    if (user != null) {
-                                                        if (user.getPicture().equals("https://firebasestorage.googleapis.com/v0/b/dogadoption-94cad.appspot.com/o/images%2Fdefault_profile_picture.png?alt=media&token=8c2794b6-2f3a-40fd-9b0c-9964a212bcf4")) {
-                                                            updatePicture(uri);
-                                                        } else {
-                                                            FirebaseStorage.getInstance()
-                                                                    .getReferenceFromUrl(user.getPicture())
-                                                                    .delete()
-                                                                    .addOnSuccessListener(aVoid -> updatePicture(uri))
-                                                                    .addOnFailureListener(e -> Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), e.getMessage(), Snackbar.LENGTH_LONG)
-                                                                            .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
-                                                                            .show());
+        if (currentUser != null)
+            isUser = userID.equals(currentUser.getUid());
+
+        if (currentUser != null && isUser)
+            startImageIntent = registerForActivityResult(
+                    new ActivityResultContracts.StartActivityForResult(),
+                    result -> {
+                        if (result != null
+                                && result.getResultCode() == Activity.RESULT_OK
+                                && result.getData() != null) {
+                            imagePath = result.getData().getData();
+                            StorageReference ref = FirebaseStorage.getInstance().getReference().child("images/" + UUID.randomUUID().toString());
+                            allLayouts.setVisibility(View.GONE);
+                            setHasOptionsMenu(false);
+                            spinner.setVisibility(View.VISIBLE);
+                            ref.putFile(imagePath)
+                                    .addOnSuccessListener(taskSnapshot -> {
+                                        final Task<Uri> firebaseUri = taskSnapshot.getStorage().getDownloadUrl();
+                                        firebaseUri.addOnSuccessListener(uri -> FirebaseDatabase.getInstance().getReference().child("Users").child(currentUser.getUid())
+                                                .addListenerForSingleValueEvent(new ValueEventListener() {
+                                                    @Override
+                                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                                        if (getActivity() == null) {
+                                                            return;
+                                                        }
+                                                        User user = snapshot.getValue(User.class);
+                                                        if (user != null) {
+                                                            if (user.getPicture().equals("https://firebasestorage.googleapis.com/v0/b/dogadoption-94cad.appspot.com/o/images%2Fdefault_profile_picture.png?alt=media&token=8c2794b6-2f3a-40fd-9b0c-9964a212bcf4")) {
+                                                                updatePicture(uri);
+                                                            } else {
+                                                                FirebaseStorage.getInstance()
+                                                                        .getReferenceFromUrl(user.getPicture())
+                                                                        .delete()
+                                                                        .addOnSuccessListener(aVoid -> updatePicture(uri))
+                                                                        .addOnFailureListener(e -> Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), e.getMessage(), Snackbar.LENGTH_LONG)
+                                                                                .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
+                                                                                .show());
+                                                            }
                                                         }
                                                     }
-                                                }
 
-                                                @Override
-                                                public void onCancelled(@NonNull DatabaseError error) {
-                                                    Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), error.getMessage(), Snackbar.LENGTH_LONG)
-                                                            .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
-                                                            .show();
-                                                }
-                                            }));
-                                })
-                                .addOnFailureListener(e -> {
-                                    spinner.setVisibility(View.GONE);
-                                    allLayouts.setVisibility(View.VISIBLE);
-                                    setHasOptionsMenu(true);
-                                    Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), e.getMessage(), Snackbar.LENGTH_LONG)
-                                            .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
-                                            .show();
-                                });
-                    }
-                });
+                                                    @Override
+                                                    public void onCancelled(@NonNull DatabaseError error) {
+                                                        Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), error.getMessage(), Snackbar.LENGTH_LONG)
+                                                                .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
+                                                                .show();
+                                                    }
+                                                }));
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        spinner.setVisibility(View.GONE);
+                                        allLayouts.setVisibility(View.VISIBLE);
+                                        setHasOptionsMenu(true);
+                                        Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), e.getMessage(), Snackbar.LENGTH_LONG)
+                                                .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
+                                                .show();
+                                    });
+                        }
+                    });
 
-        FirebaseDatabase.getInstance().getReference().child("Users").child(currentUser.getUid())
+        FirebaseDatabase.getInstance().getReference().child("Users").child(userID)
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -208,7 +217,7 @@ public class ProfileFragment extends Fragment {
         ref = FirebaseDatabase.getInstance()
                 .getReference()
                 .child("Users")
-                .child(currentUser.getUid())
+                .child(userID)
                 .child("dogs");
     }
 
@@ -250,15 +259,18 @@ public class ProfileFragment extends Fragment {
         FirebaseRecyclerOptions<String> options = new FirebaseRecyclerOptions.Builder<String>()
                 .setQuery(ref, String.class)
                 .build();
-        myDogAdapter = new MyDogAdapter(options, requireContext(), requireActivity());
+        myDogAdapter = new MyDogAdapter(options, requireContext(), requireActivity(), isUser);
         myDogList.setAdapter(myDogAdapter);
         Button logOutButton = v.findViewById(R.id.logOutButton);
-        logOutButton.setOnClickListener(view -> {
-            mAuth.signOut();
-            switchTo();
-        });
+        if (isUser)
+            logOutButton.setOnClickListener(view -> {
+                mAuth.signOut();
+                switchTo();
+            });
+        else
+            logOutButton.setVisibility(View.GONE);
 
-        if (mAuth.getCurrentUser() != null) {
+        if (mAuth.getCurrentUser() != null && isUser) {
             if (!mAuth.getCurrentUser().isEmailVerified()) {
                 topBar.setVisibility(View.VISIBLE);
                 myDogsLayout.setVisibility(View.GONE);
@@ -279,7 +291,8 @@ public class ProfileFragment extends Fragment {
 
     @Override
     public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
-        requireActivity().getMenuInflater().inflate(R.menu.profile_menu, menu);
+        if (isUser)
+            requireActivity().getMenuInflater().inflate(R.menu.profile_menu, menu);
         super.onCreateOptionsMenu(menu, inflater);
     }
 

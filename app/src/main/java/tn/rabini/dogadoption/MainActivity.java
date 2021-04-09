@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.rbddevs.splashy.Splashy;
 
 public class MainActivity extends AppCompatActivity {
@@ -32,9 +33,19 @@ public class MainActivity extends AppCompatActivity {
         bottomNavigationView = findViewById(R.id.bottom_navigation);
         bottomNavigationView.setOnNavigationItemSelectedListener(item -> {
             int option = item.getItemId();
-            toFragment(option == R.id.homeItem
-                    ? "ToHome" : option == R.id.favoritesItem
-                    ? "ToFavorites" : "ToProfile", null);
+            if (option == R.id.homeItem)
+                toFragment("ToHome", null);
+            else if (option == R.id.favoritesItem)
+                toFragment("ToFavorites", null);
+            else {
+                Bundle bundle = new Bundle();
+                String userID = null;
+                FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+                if (currentUser != null)
+                    userID = currentUser.getUid();
+                bundle.putString("userID", userID);
+                toFragment("ToProfile", bundle);
+            }
             return true;
         });
 
@@ -58,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
                 bottomNavigationView.getMenu().findItem(R.id.profileItem).setChecked(true);
                 break;
             case "ToProfile":
-                replaceFragment(FirebaseAuth.getInstance().getCurrentUser() == null ? LoginFragment.class : ProfileFragment.class, null);
+                replaceFragment(FirebaseAuth.getInstance().getCurrentUser() == null ? LoginFragment.class : ProfileFragment.class, result);
                 bottomNavigationView.getMenu().findItem(R.id.profileItem).setChecked(true);
                 break;
             case "ToAddDog":

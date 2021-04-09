@@ -64,7 +64,7 @@ public class RegisterFragment extends Fragment {
         confirmPasswordLayout = v.findViewById(R.id.confirmPasswordLayout);
 
         TextView signInLink = v.findViewById(R.id.signInLink);
-        signInLink.setOnClickListener(view -> switchTo("ToLogin"));
+        signInLink.setOnClickListener(view -> switchTo("ToLogin", null));
 
 
         signUpButton = v.findViewById(R.id.signUpButton);
@@ -140,7 +140,7 @@ public class RegisterFragment extends Fragment {
                                                             .setAnchorView(requireView().findViewById(R.id.bottom_navigation))
                                                             .show();
                                                     signUpButton.setEnabled(true);
-                                                    switchTo("ToProfile");
+                                                    switchTo("ToProfile", mAuth.getCurrentUser().getUid());
                                                 })
                                                 .addOnFailureListener(e -> {
                                                     spinner.setVisibility(View.INVISIBLE);
@@ -148,7 +148,7 @@ public class RegisterFragment extends Fragment {
                                                             .setAnchorView(requireView().findViewById(R.id.bottom_navigation))
                                                             .show();
                                                     signUpButton.setEnabled(true);
-                                                    switchTo("ToProfile");
+                                                    switchTo("ToProfile", mAuth.getCurrentUser().getUid());
                                                 }))
                                         .addOnFailureListener(e -> {
                                             errorView.setText(e.getMessage());
@@ -225,9 +225,11 @@ public class RegisterFragment extends Fragment {
                 && phoneValue.length() == 8;
     }
 
-    private void switchTo(String fragmentName) {
+    private void switchTo(String fragmentName, @Nullable String userID) {
         Bundle flipBundle = new Bundle();
         flipBundle.putString("flip", fragmentName);
+        if (fragmentName.equals("ToProfile"))
+            flipBundle.putString("userID", userID);
         getParentFragmentManager().setFragmentResult("flipResult", flipBundle);
     }
 }

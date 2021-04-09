@@ -38,12 +38,13 @@ public class MyDogAdapter extends FirebaseRecyclerAdapter<String, MyDogAdapter.M
 
     private final Context context;
     private final FragmentActivity activity;
+    private final boolean isUser;
 
-    public MyDogAdapter(@NonNull FirebaseRecyclerOptions<String> options, Context context, FragmentActivity activity) {
+    public MyDogAdapter(@NonNull FirebaseRecyclerOptions<String> options, Context context, FragmentActivity activity, boolean isUser) {
         super(options);
         this.context = context;
         this.activity = activity;
-
+        this.isUser = isUser;
     }
 
     @Override
@@ -88,80 +89,85 @@ public class MyDogAdapter extends FirebaseRecyclerAdapter<String, MyDogAdapter.M
                                 ((AppCompatActivity) context).getSupportFragmentManager().setFragmentResult("flipResult", flipBundle);
                             });
 
-                            holder.editButton.setOnClickListener(view -> {
-                                Bundle flipBundle = new Bundle();
-                                flipBundle.putString("flip", "ToEditDog");
-                                flipBundle.putString("id", dog.getId());
-                                flipBundle.putString("image", dog.getImage());
-                                flipBundle.putString("name", dog.getName());
-                                flipBundle.putString("race", dog.getRace());
-                                flipBundle.putString("age", dog.getAge());
-                                flipBundle.putString("gender", dog.getGender());
-                                flipBundle.putString("description", dog.getDescription());
-                                flipBundle.putBoolean("ready", dog.isReady());
-                                flipBundle.putString("location", dog.getLocation());
-                                ((AppCompatActivity) context).getSupportFragmentManager().setFragmentResult("flipResult", flipBundle);
-                            });
+                            if (isUser) {
+                                holder.editButton.setVisibility(View.VISIBLE);
+                                holder.deleteButton.setVisibility(View.VISIBLE);
 
-                            FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+                                holder.editButton.setOnClickListener(view -> {
+                                    Bundle flipBundle = new Bundle();
+                                    flipBundle.putString("flip", "ToEditDog");
+                                    flipBundle.putString("id", dog.getId());
+                                    flipBundle.putString("image", dog.getImage());
+                                    flipBundle.putString("name", dog.getName());
+                                    flipBundle.putString("race", dog.getRace());
+                                    flipBundle.putString("age", dog.getAge());
+                                    flipBundle.putString("gender", dog.getGender());
+                                    flipBundle.putString("description", dog.getDescription());
+                                    flipBundle.putBoolean("ready", dog.isReady());
+                                    flipBundle.putString("location", dog.getLocation());
+                                    ((AppCompatActivity) context).getSupportFragmentManager().setFragmentResult("flipResult", flipBundle);
+                                });
 
-                            holder.deleteButton.setOnClickListener(view -> {
-                                MaterialAlertDialogBuilder deleteBuilder = new MaterialAlertDialogBuilder(context)
-                                        .setTitle(context.getString(R.string.delete_dialog))
-                                        .setPositiveButton("Yes", (dialogInterface, i) ->
-                                                FirebaseStorage.getInstance()
-                                                        .getReferenceFromUrl(dog.getImage())
-                                                        .delete()
-                                                        .addOnSuccessListener(aVoid -> {
-                                                            if (currentUser != null) {
-                                                                FirebaseDatabase.getInstance()
-                                                                        .getReference("Users")
-                                                                        .child(currentUser.getUid())
-                                                                        .child("dogs")
-                                                                        .addListenerForSingleValueEvent(new ValueEventListener() {
-                                                                            @Override
-                                                                            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                                                                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                                                                                    String dogID = dataSnapshot.getValue(String.class);
-                                                                                    if (dogID != null) {
-                                                                                        if (dogID.equals(model)) {
-                                                                                            dataSnapshot.getRef().removeValue()
-                                                                                                    .addOnSuccessListener(aVoid -> FirebaseDatabase
-                                                                                                            .getInstance()
-                                                                                                            .getReference("Dogs")
-                                                                                                            .child(dogID)
-                                                                                                            .removeValue()
-                                                                                                            .addOnSuccessListener(aVoid1 -> FirebaseDatabase.getInstance()
-                                                                                                                    .getReference("Dogs")
-                                                                                                                    .child(model)
-                                                                                                                    .removeValue()
-                                                                                                                    .addOnSuccessListener(aVoid2 -> Snackbar.make(activity.findViewById(R.id.coordinatorLayout), "Dog deleted successfully!", Snackbar.LENGTH_LONG)
-                                                                                                                            .setAnchorView(activity.findViewById(R.id.bottom_navigation))
-                                                                                                                            .show())
-                                                                                                                    .addOnFailureListener(e -> Snackbar.make(activity.findViewById(R.id.coordinatorLayout), Objects.requireNonNull(e.getMessage()), Snackbar.LENGTH_LONG)
-                                                                                                                            .setAnchorView(activity.findViewById(R.id.bottom_navigation))
-                                                                                                                            .show()))
-                                                                                                            .addOnFailureListener(e -> Snackbar.make(activity.findViewById(R.id.coordinatorLayout), Objects.requireNonNull(e.getMessage()), Snackbar.LENGTH_LONG)
-                                                                                                                    .setAnchorView(activity.findViewById(R.id.bottom_navigation))
-                                                                                                                    .show()))
-                                                                                                    .addOnFailureListener(e -> Snackbar.make(activity.findViewById(R.id.coordinatorLayout), Objects.requireNonNull(e.getMessage()), Snackbar.LENGTH_LONG)
-                                                                                                            .setAnchorView(activity.findViewById(R.id.bottom_navigation))
-                                                                                                            .show());
+                                FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+
+                                holder.deleteButton.setOnClickListener(view -> {
+                                    MaterialAlertDialogBuilder deleteBuilder = new MaterialAlertDialogBuilder(context)
+                                            .setTitle(context.getString(R.string.delete_dialog))
+                                            .setPositiveButton("Yes", (dialogInterface, i) ->
+                                                    FirebaseStorage.getInstance()
+                                                            .getReferenceFromUrl(dog.getImage())
+                                                            .delete()
+                                                            .addOnSuccessListener(aVoid -> {
+                                                                if (currentUser != null) {
+                                                                    FirebaseDatabase.getInstance()
+                                                                            .getReference("Users")
+                                                                            .child(currentUser.getUid())
+                                                                            .child("dogs")
+                                                                            .addListenerForSingleValueEvent(new ValueEventListener() {
+                                                                                @Override
+                                                                                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                                                                    for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                                                                                        String dogID = dataSnapshot.getValue(String.class);
+                                                                                        if (dogID != null) {
+                                                                                            if (dogID.equals(model)) {
+                                                                                                dataSnapshot.getRef().removeValue()
+                                                                                                        .addOnSuccessListener(aVoid -> FirebaseDatabase
+                                                                                                                .getInstance()
+                                                                                                                .getReference("Dogs")
+                                                                                                                .child(dogID)
+                                                                                                                .removeValue()
+                                                                                                                .addOnSuccessListener(aVoid1 -> FirebaseDatabase.getInstance()
+                                                                                                                        .getReference("Dogs")
+                                                                                                                        .child(model)
+                                                                                                                        .removeValue()
+                                                                                                                        .addOnSuccessListener(aVoid2 -> Snackbar.make(activity.findViewById(R.id.coordinatorLayout), "Dog deleted successfully!", Snackbar.LENGTH_LONG)
+                                                                                                                                .setAnchorView(activity.findViewById(R.id.bottom_navigation))
+                                                                                                                                .show())
+                                                                                                                        .addOnFailureListener(e -> Snackbar.make(activity.findViewById(R.id.coordinatorLayout), Objects.requireNonNull(e.getMessage()), Snackbar.LENGTH_LONG)
+                                                                                                                                .setAnchorView(activity.findViewById(R.id.bottom_navigation))
+                                                                                                                                .show()))
+                                                                                                                .addOnFailureListener(e -> Snackbar.make(activity.findViewById(R.id.coordinatorLayout), Objects.requireNonNull(e.getMessage()), Snackbar.LENGTH_LONG)
+                                                                                                                        .setAnchorView(activity.findViewById(R.id.bottom_navigation))
+                                                                                                                        .show()))
+                                                                                                        .addOnFailureListener(e -> Snackbar.make(activity.findViewById(R.id.coordinatorLayout), Objects.requireNonNull(e.getMessage()), Snackbar.LENGTH_LONG)
+                                                                                                                .setAnchorView(activity.findViewById(R.id.bottom_navigation))
+                                                                                                                .show());
+                                                                                            }
                                                                                         }
                                                                                     }
                                                                                 }
-                                                                            }
 
-                                                                            @Override
-                                                                            public void onCancelled(@NonNull DatabaseError error) {
-                                                                                Toast.makeText(context, error.getMessage(), Toast.LENGTH_LONG).show();
-                                                                            }
-                                                                        });
-                                                            }
-                                                        }))
-                                        .setNegativeButton("No", (dialog, which) -> dialog.cancel());
-                                deleteBuilder.show();
-                            });
+                                                                                @Override
+                                                                                public void onCancelled(@NonNull DatabaseError error) {
+                                                                                    Toast.makeText(context, error.getMessage(), Toast.LENGTH_LONG).show();
+                                                                                }
+                                                                            });
+                                                                }
+                                                            }))
+                                            .setNegativeButton("No", (dialog, which) -> dialog.cancel());
+                                    deleteBuilder.show();
+                                });
+                            }
                         }
                     }
 
