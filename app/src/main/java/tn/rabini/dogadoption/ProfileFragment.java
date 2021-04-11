@@ -61,10 +61,9 @@ public class ProfileFragment extends Fragment {
     private TextView usernameView, phoneView, emailView;
     private ImageView profileImage;
     private CircularProgressIndicator spinner;
-    private RelativeLayout allLayouts;
+    private RelativeLayout allLayouts, topBar;
     private ActivityResultLauncher<Intent> startImageIntent;
     private Uri imagePath;
-    private LinearLayout topBar;
     private String userID;
     private boolean isUser = false;
 
@@ -173,6 +172,8 @@ public class ProfileFragment extends Fragment {
                                                 .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
                                                 .show();
                                     });
+                        } else {
+                            setHasOptionsMenu(true);
                         }
                     });
 

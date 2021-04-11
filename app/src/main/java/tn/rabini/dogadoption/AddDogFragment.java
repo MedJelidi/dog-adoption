@@ -250,7 +250,7 @@ public class AddDogFragment extends Fragment {
         ageLayout.setError(null);
         errorView.setVisibility(View.INVISIBLE);
         if (nameValue == null || nameValue.length() < 2 || nameValue.length() > 20) {
-            nameLayout.setError("Name should be between 2 and 20 characters.");
+            nameLayout.setError("2 < name length < 20.");
             return false;
         }
         if (raceValue == null || raceValue.length() == 0) {

@@ -122,13 +122,11 @@ public class LikedDogAdapter extends FirebaseRecyclerAdapter<String, LikedDogAda
             userRef.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    Log.v("USEEERRRRRR", snapshot.getValue().toString());
                     User user = snapshot.getValue(User.class);
                     if (user != null) {
                         ArrayList<String> likedDogs;
                         if (user.getLikedDogs() != null) {
                             likedDogs = user.getLikedDogs();
-                            Log.v("LIKKKKEEEEEEED DOOGSS", likedDogs.toString());
                             for (int i = 0; i < likedDogs.size(); i++) {
                                 String dogID = likedDogs.get(i);
                                 if (dogID != null) {

@@ -311,9 +311,12 @@ public class DogDetailsFragment extends Fragment {
                             if (user.getLikedDogs() != null) {
                                 likedDogs = user.getLikedDogs();
                                 for (int i = 0; i < likedDogs.size(); i++) {
-                                    if (likedDogs.get(i).equals(id)) {
-                                        likedDogs.remove(i);
-                                        break;
+                                    String dogID = likedDogs.get(i);
+                                    if (dogID != null) {
+                                        if (dogID.equals(id)) {
+                                            likedDogs.remove(i);
+                                            break;
+                                        }
                                     }
                                 }
                                 user.setLikedDogs(likedDogs);
