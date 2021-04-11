@@ -31,7 +31,7 @@ public class HomeFragment extends Fragment {
     private DogAdapter dogAdapter;
     private DatabaseReference ref;
     private CircularProgressIndicator spinner;
-    private String optionSelected = "race";
+    private String optionSelected = "race", searchQuery = "";
     private LinearLayout searchBar;
 
     public HomeFragment() {
@@ -66,6 +66,7 @@ public class HomeFragment extends Fragment {
             @Override
             public void onItemSelected(@NonNull MaterialSpinner materialSpinner, View view, int i, long l) {
                 optionSelected = materialSpinner.getSelectedItem().toString();
+                updateSearch();
             }
 
             @Override
@@ -114,17 +115,22 @@ public class HomeFragment extends Fragment {
 
             @Override
             public boolean onQueryTextChange(String s) {
-                Query newRef = ref.orderByChild(optionSelected)
-                        .startAt(s).endAt(s + "\uf8ff");
-                FirebaseRecyclerOptions<Dog> newOptions = new FirebaseRecyclerOptions.Builder<Dog>()
-                        .setQuery(newRef, Dog.class)
-                        .build();
-                dogAdapter.updateOptions(newOptions);
+                searchQuery = s;
+                updateSearch();
                 return false;
             }
         });
 
         return v;
+    }
+
+    private void updateSearch() {
+        Query newRef = ref.orderByChild(optionSelected)
+                .startAt(searchQuery).endAt(searchQuery + "\uf8ff");
+        FirebaseRecyclerOptions<Dog> newOptions = new FirebaseRecyclerOptions.Builder<Dog>()
+                .setQuery(newRef, Dog.class)
+                .build();
+        dogAdapter.updateOptions(newOptions);
     }
 
     @Override
