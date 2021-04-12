@@ -19,6 +19,12 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.datepicker.CalendarConstraints;
+import com.google.android.material.datepicker.CompositeDateValidator;
+import com.google.android.material.datepicker.DateValidatorPointBackward;
+import com.google.android.material.datepicker.DateValidatorPointForward;
+import com.google.android.material.datepicker.MaterialDatePicker;
+import com.google.android.material.datepicker.MaterialPickerOnPositiveButtonClickListener;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.switchmaterial.SwitchMaterial;
@@ -33,7 +39,15 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.tiper.MaterialSpinner;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.Locale;
+import java.util.TimeZone;
 import java.util.UUID;
 
 import tn.rabini.dogadoption.models.Dog;
@@ -42,8 +56,8 @@ import tn.rabini.dogadoption.models.User;
 public class AddDogFragment extends Fragment {
 
     ActivityResultLauncher<Intent> startImageIntent;
-    private TextInputLayout nameLayout, ageLayout, descriptionLayout;
-    private TextInputEditText nameInput, ageInput, descriptionInput;
+    private TextInputLayout nameLayout, descriptionLayout;
+    private TextInputEditText nameInput, descriptionInput;
     private String nameValue, raceValue, ageValue, descriptionValue, locationValue,
             genderValue = "Male";
     private boolean readyValue;
@@ -82,11 +96,10 @@ public class AddDogFragment extends Fragment {
         nameLayout = v.findViewById(R.id.nameLayout);
         MaterialSpinner genderLayout = v.findViewById(R.id.genderLayout);
         raceLayout = v.findViewById(R.id.raceLayout);
-        ageLayout = v.findViewById(R.id.ageLayout);
+        Button ageButton = v.findViewById(R.id.ageButton);
         descriptionLayout = v.findViewById(R.id.descriptionLayout);
         locationLayout = v.findViewById(R.id.locationLayout);
         nameInput = v.findViewById(R.id.nameInput);
-        ageInput = v.findViewById(R.id.ageInput);
         descriptionInput = v.findViewById(R.id.descriptionInput);
         errorView = v.findViewById(R.id.errorView);
         Button imageButton = v.findViewById(R.id.imagePickerButton);
@@ -95,6 +108,18 @@ public class AddDogFragment extends Fragment {
         submitButton = v.findViewById(R.id.submitButton);
         Button cancelButton = v.findViewById(R.id.cancelButton);
         spinner = v.findViewById(R.id.spinner);
+
+        MaterialDatePicker<Long> agePicker = handleCalendar();
+
+        ageButton.setOnClickListener(view -> agePicker.show(getParentFragmentManager(), "BIRTHDAY_PICKER"));
+
+        agePicker.addOnPositiveButtonClickListener(selection -> {
+            TimeZone timeZoneUTC = TimeZone.getDefault();
+            int offsetFromUTC = timeZoneUTC.getOffset(new Date().getTime()) * -1;
+            SimpleDateFormat simpleFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+            Date date = new Date(selection + offsetFromUTC);
+            ageValue = simpleFormat.format(date);
+        });
 
         ArrayAdapter<CharSequence> genderAdapter = ArrayAdapter.createFromResource(requireContext(),
                 R.array.genders, android.R.layout.simple_spinner_item);
@@ -156,9 +181,28 @@ public class AddDogFragment extends Fragment {
         return v;
     }
 
+    private MaterialDatePicker<Long> handleCalendar() {
+        MaterialDatePicker.Builder<Long> agePickerBuilder = MaterialDatePicker.Builder.datePicker()
+                .setTitleText("Select birthday")
+                .setSelection(MaterialDatePicker.todayInUtcMilliseconds());
+        Calendar minDate = new GregorianCalendar(Calendar.getInstance().get(Calendar.YEAR) - 20,
+                Calendar.getInstance().get(Calendar.MONTH),
+                Calendar.getInstance().get(Calendar.DAY_OF_MONTH));
+        CalendarConstraints.Builder calendarConstraintBuilder = new CalendarConstraints.Builder();
+        CalendarConstraints.DateValidator dateValidatorMin = DateValidatorPointForward.from(minDate.getTimeInMillis());
+        CalendarConstraints.DateValidator dateValidatorMax = DateValidatorPointBackward.now();
+        ArrayList<CalendarConstraints.DateValidator> listValidators =
+                new ArrayList<>();
+        listValidators.add(dateValidatorMin);
+        listValidators.add(dateValidatorMax);
+        CalendarConstraints.DateValidator validators = CompositeDateValidator.allOf(listValidators);
+        calendarConstraintBuilder.setValidator(validators);
+        agePickerBuilder.setCalendarConstraints(calendarConstraintBuilder.build());
+        return agePickerBuilder.build();
+    }
+
     private void onSubmit() {
         nameValue = nameInput.getText().toString().trim();
-        ageValue = ageInput.getText().toString().trim();
         descriptionValue = descriptionInput.getText().toString().trim();
         readyValue = readySwitch.isChecked();
         if (formValid()) {
@@ -172,7 +216,7 @@ public class AddDogFragment extends Fragment {
                         final Task<Uri> firebaseUri = taskSnapshot.getStorage().getDownloadUrl();
                         firebaseUri.addOnSuccessListener(uri -> {
                             Dog dog = new Dog(UUID.randomUUID().toString(),
-                                    nameValue,
+                                    nameValue.substring(0, 1).toUpperCase() + nameValue.substring(1),
                                     raceValue,
                                     ageValue,
                                     genderValue,
@@ -247,10 +291,9 @@ public class AddDogFragment extends Fragment {
         descriptionLayout.setError(null);
         locationLayout.setError(null);
         raceLayout.setError(null);
-        ageLayout.setError(null);
         errorView.setVisibility(View.INVISIBLE);
         if (nameValue == null || nameValue.length() < 2 || nameValue.length() > 20) {
-            nameLayout.setError("2 < name length < 20.");
+            nameLayout.setError("2 < name < 20");
             return false;
         }
         if (raceValue == null || raceValue.length() == 0) {
@@ -258,7 +301,8 @@ public class AddDogFragment extends Fragment {
             return false;
         }
         if (ageValue == null || ageValue.length() == 0) {
-            ageLayout.setError("Age required.");
+            errorView.setText(getString(R.string.age_required));
+            errorView.setVisibility(View.VISIBLE);
             return false;
         }
         if (descriptionValue == null || descriptionValue.length() == 0) {

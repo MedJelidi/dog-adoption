@@ -46,6 +46,7 @@
         android:background="#8E8E8E" />
 
     <ScrollView
+        android:id="@+id/parentScroll"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@+id/hrView">
@@ -70,7 +71,7 @@
                 android:scaleType="fitCenter" />
 
             <LinearLayout
-                android:id="@+id/dogNameAge"
+                android:id="@+id/dogNameGender"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/dogImage"
@@ -88,7 +89,7 @@
                     android:textSize="32sp" />
 
                 <TextView
-                    android:id="@+id/dogAge"
+                    android:id="@+id/dogGender"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
@@ -100,7 +101,7 @@
                 android:id="@+id/dogDescription"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/dogNameAge"
+                android:layout_below="@+id/dogNameGender"
                 android:layout_centerHorizontal="true"
                 android:layout_marginTop="15dp"
                 android:layout_marginBottom="15dp"
@@ -135,6 +136,25 @@
                     android:textSize="16sp"
                     app:drawableLeftCompat="@drawable/baseline_pets_24"
                     app:drawableStartCompat="@drawable/baseline_pets_24" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="0.1dp"
+                    android:background="#8E8E8E" />
+
+                <TextView
+                    android:id="@+id/dogAge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginBottom="10dp"
+                    android:drawablePadding="10dp"
+                    android:fontFamily="@font/roboto_light"
+                    android:textColor="@color/black"
+                    android:textSize="16sp"
+                    app:drawableLeftCompat="@drawable/outline_cake_24"
+                    app:drawableStartCompat="@drawable/outline_cake_24" />
 
                 <View
                     android:layout_width="match_parent"

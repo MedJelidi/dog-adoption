@@ -1,8 +1,10 @@
 package tn.rabini.dogadoption;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
 import android.view.LayoutInflater;
@@ -10,11 +12,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
@@ -36,6 +40,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -77,6 +83,8 @@ public class DogDetailsFragment extends Fragment {
         }
     }
 
+    @SuppressLint("ClickableViewAccessibility")
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -84,10 +92,12 @@ public class DogDetailsFragment extends Fragment {
         View v = inflater.inflate(R.layout.fragment_dog_details, container, false);
         spinner = v.findViewById(R.id.spinner);
         allLayouts = v.findViewById(R.id.allLayouts);
+        ScrollView parentScroll = v.findViewById(R.id.parentScroll);
         ImageView arrowBack = v.findViewById(R.id.arrowBack);
         ImageView dogImage = v.findViewById(R.id.dogImage);
         likeButton = v.findViewById(R.id.likeButton);
         TextView dogName = v.findViewById(R.id.dogName);
+        TextView dogGender = v.findViewById(R.id.dogGender);
         TextView dogRace = v.findViewById(R.id.dogRace);
         TextView dogAge = v.findViewById(R.id.dogAge);
         TextView dogDescription = v.findViewById(R.id.dogDescription);
@@ -116,8 +126,7 @@ public class DogDetailsFragment extends Fragment {
 
         // IMAGE FULLSCREEN ON CLICK
         dogImage.setOnClickListener(v1 -> {
-            AlertDialog fullscreenBuilder = new MaterialAlertDialogBuilder(requireContext(),
-                    R.style.DialogTheme)
+            AlertDialog fullscreenBuilder = new MaterialAlertDialogBuilder(requireContext())
                     .setNegativeButton("Close", (dialogInterface, i) -> dialogInterface.dismiss())
                     .setView(R.layout.fullscreen_image)
                     .create();
@@ -142,7 +151,20 @@ public class DogDetailsFragment extends Fragment {
         // SET AVAILABLE OR NOT IMAGE
         dogReady.setCompoundDrawablesWithIntrinsicBounds(ready ? ContextCompat.getDrawable(requireContext(), R.drawable.baseline_check_circle_24)
                 : ContextCompat.getDrawable(requireContext(), R.drawable.baseline_report_gmailerrorred_24), null, null, null);
-        dogAge.setText(getString(R.string.gender_age_detail, gender, age));
+
+        // CALCULATE DATE
+        String[] dates = age.split("-");
+        LocalDate l = LocalDate.of(Integer.parseInt(dates[0]), Integer.parseInt(dates[1]), Integer.parseInt(dates[2])); //specify year, month, date directly
+        LocalDate now = LocalDate.now();
+        Period diff = Period.between(l, now);
+
+        String years = diff.getYears() > 0 ? diff.getYears() + " years, " : "";
+        String days = diff.getDays() > 0 ? diff.getDays() + " days" : "";
+        String months = diff.getMonths() > 0 ? days.equals("") ? diff.getMonths() + " months" : diff.getMonths() + " months, " : "";
+        String fullAge = years + months + days;
+        dogAge.setText(fullAge);
+
+        dogGender.setText(getString(R.string.gender_detail, gender));
         dogDescription.setText(description);
         dogLocation.setText(location);
 
@@ -349,6 +371,19 @@ public class DogDetailsFragment extends Fragment {
                 });
             }
         });
+
+        parentScroll.setOnTouchListener((view, motionEvent) -> {
+            dogDescription.getParent().requestDisallowInterceptTouchEvent(false);
+            view.performClick();
+            return false;
+        });
+
+        dogDescription.setOnTouchListener((view, motionEvent) -> {
+            dogDescription.getParent().requestDisallowInterceptTouchEvent(true);
+            view.performClick();
+            return false;
+        });
+
         return v;
     }
 

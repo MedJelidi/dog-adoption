@@ -124,9 +124,13 @@ public class HomeFragment extends Fragment {
         return v;
     }
 
+    private String capitalize(String s) {
+        return s.length() < 1 ? s : s.substring(0, 1).toUpperCase() + s.substring(1);
+    }
+
     private void updateSearch() {
         Query newRef = ref.orderByChild(optionSelected)
-                .startAt(searchQuery).endAt(searchQuery + "\uf8ff");
+                .startAt(capitalize(searchQuery)).endAt(capitalize(searchQuery) + "\uf8ff");
         FirebaseRecyclerOptions<Dog> newOptions = new FirebaseRecyclerOptions.Builder<Dog>()
                 .setQuery(newRef, Dog.class)
                 .build();
