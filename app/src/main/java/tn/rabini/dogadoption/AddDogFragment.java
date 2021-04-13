@@ -24,7 +24,6 @@ import com.google.android.material.datepicker.CompositeDateValidator;
 import com.google.android.material.datepicker.DateValidatorPointBackward;
 import com.google.android.material.datepicker.DateValidatorPointForward;
 import com.google.android.material.datepicker.MaterialDatePicker;
-import com.google.android.material.datepicker.MaterialPickerOnPositiveButtonClickListener;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.switchmaterial.SwitchMaterial;
@@ -39,13 +38,12 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.tiper.MaterialSpinner;
 
-import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.UUID;
@@ -239,11 +237,11 @@ public class AddDogFragment extends Fragment {
                                                         public void onDataChange(@NonNull DataSnapshot snapshot) {
                                                             User user = snapshot.getValue(User.class);
                                                             if (user != null) {
-                                                                ArrayList<String> dogs = new ArrayList<>();
+                                                                HashMap<String, String> dogs = new HashMap<>();
                                                                 if (user.getDogs() != null) {
                                                                     dogs = user.getDogs();
                                                                 }
-                                                                dogs.add(dog.getId());
+                                                                dogs.put(UUID.randomUUID().toString(), dog.getId());
                                                                 FirebaseDatabase.getInstance()
                                                                         .getReference("Users")
                                                                         .child(mAuth.getCurrentUser().getUid())

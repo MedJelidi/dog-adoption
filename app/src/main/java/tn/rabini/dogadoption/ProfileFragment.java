@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -184,6 +185,7 @@ public class ProfileFragment extends Fragment {
                         if (getActivity() == null) {
                             return;
                         }
+                        Log.v("uuuuuuuuuseeeeeerrrrrr", snapshot.getValue().toString());
                         User user = snapshot.getValue(User.class);
                         if (user != null) {
                             usernameView.setText(user.getUsername());

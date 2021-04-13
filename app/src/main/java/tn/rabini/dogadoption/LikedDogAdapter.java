@@ -2,7 +2,6 @@ package tn.rabini.dogadoption;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,7 +27,6 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -124,14 +122,14 @@ public class LikedDogAdapter extends FirebaseRecyclerAdapter<String, LikedDogAda
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                     User user = snapshot.getValue(User.class);
                     if (user != null) {
-                        ArrayList<String> likedDogs;
+                        HashMap<String, String> likedDogs;
                         if (user.getLikedDogs() != null) {
                             likedDogs = user.getLikedDogs();
-                            for (int i = 0; i < likedDogs.size(); i++) {
-                                String dogID = likedDogs.get(i);
+                            for (String k: likedDogs.keySet()) {
+                                String dogID = likedDogs.get(k);
                                 if (dogID != null) {
                                     if (dogID.equals(model)) {
-                                        likedDogs.remove(i);
+                                        likedDogs.remove(k);
                                         break;
                                     }
                                 }

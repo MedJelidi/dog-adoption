@@ -1,11 +1,11 @@
 package tn.rabini.dogadoption.models;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 
 public class User {
     private String username, email, phone, picture;
-    private ArrayList<String> dogs;
-    private ArrayList<String> likedDogs;
+    private HashMap<String, String> dogs;
+    private HashMap<String, String> likedDogs;
 
     public User() {}
 
@@ -14,8 +14,8 @@ public class User {
         this.email = email;
         this.phone = phone;
         this.picture = picture;
-        this.dogs = new ArrayList<>();
-        this.likedDogs = new ArrayList<>();
+        this.dogs = new HashMap<>();
+        this.likedDogs = new HashMap<>();
     }
 
     public String getUsername() {
@@ -34,15 +34,15 @@ public class User {
         return picture;
     }
 
-    public ArrayList<String> getDogs() {
+    public HashMap<String, String> getDogs() {
         return dogs;
     }
 
-    public ArrayList<String> getLikedDogs() {
+    public HashMap<String, String> getLikedDogs() {
         return likedDogs;
     }
 
-    public void setLikedDogs(ArrayList<String> likedDogs) {
+    public void setLikedDogs(HashMap<String, String> likedDogs) {
         this.likedDogs = likedDogs;
     }
 

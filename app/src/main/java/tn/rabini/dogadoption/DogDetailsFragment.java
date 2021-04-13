@@ -42,10 +42,10 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.time.LocalDate;
 import java.time.Period;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 
 import tn.rabini.dogadoption.models.User;
 
@@ -290,11 +290,11 @@ public class DogDetailsFragment extends Fragment {
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         User user = snapshot.getValue(User.class);
                         if (user != null) {
-                            ArrayList<String> likedDogs = new ArrayList<>();
+                            HashMap<String, String> likedDogs = new HashMap<>();
                             if (user.getLikedDogs() != null) {
                                 likedDogs = user.getLikedDogs();
                             }
-                            likedDogs.add(id);
+                            likedDogs.put(UUID.randomUUID().toString(), id);
                             user.setLikedDogs(likedDogs);
                             Map<String, Object> userUpdates = new HashMap<>();
                             userUpdates.put("likedDogs", user.getLikedDogs());
@@ -329,14 +329,14 @@ public class DogDetailsFragment extends Fragment {
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         User user = snapshot.getValue(User.class);
                         if (user != null) {
-                            ArrayList<String> likedDogs;
+                            HashMap<String, String> likedDogs;
                             if (user.getLikedDogs() != null) {
                                 likedDogs = user.getLikedDogs();
-                                for (int i = 0; i < likedDogs.size(); i++) {
-                                    String dogID = likedDogs.get(i);
+                                for (String k: likedDogs.keySet()) {
+                                    String dogID = likedDogs.get(k);
                                     if (dogID != null) {
                                         if (dogID.equals(id)) {
-                                            likedDogs.remove(i);
+                                            likedDogs.remove(k);
                                             break;
                                         }
                                     }
