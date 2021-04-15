@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,16 +20,22 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.firebase.ui.database.FirebaseRecyclerOptions;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
+import com.google.maps.android.SphericalUtil;
 import com.tiper.MaterialSpinner;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import tn.rabini.dogadoption.models.Dog;
 
@@ -43,9 +48,8 @@ public class HomeFragment extends Fragment {
     private RecyclerView dogList;
     private DogAdapter dogAdapter;
     private CircularProgressIndicator spinner;
-    private String optionSelected = "race", searchQuery = "";
+    private String optionSelected = "race", currentOption = "race", searchQuery = "";
     private LinearLayout searchBar;
-    private ArrayList<Dog> allDogs;
     private Double lat, lng;
     private final BroadcastReceiver cordReceiver = new BroadcastReceiver() {
         @Override
@@ -100,7 +104,7 @@ public class HomeFragment extends Fragment {
             @Override
             public void onItemSelected(@NonNull MaterialSpinner materialSpinner, View view, int i, long l) {
                 optionSelected = materialSpinner.getSelectedItem().toString();
-                updateSearch();
+                updateSearch(false);
             }
 
             @Override
@@ -117,7 +121,6 @@ public class HomeFragment extends Fragment {
                 spinner.setVisibility(View.GONE);
                 dogList.setVisibility(View.VISIBLE);
                 searchBar.setVisibility(View.VISIBLE);
-                allDogs = new ArrayList<>(dogAdapter.getSnapshots());
             }
         };
         dogList.setAdapter(dogAdapter);
@@ -147,8 +150,10 @@ public class HomeFragment extends Fragment {
 
             @Override
             public boolean onQueryTextChange(String s) {
-                searchQuery = s;
-                updateSearch();
+                if (!optionSelected.equals("distance")) {
+                    searchQuery = s;
+                    updateSearch(true);
+                }
                 return false;
             }
         });
@@ -160,16 +165,51 @@ public class HomeFragment extends Fragment {
         return s.length() < 1 ? s : s.substring(0, 1).toUpperCase() + s.substring(1);
     }
 
-    private void updateSearch() {
+    private void updateSearch(boolean typing) {
+        if (optionSelected.equals("distance")) {
+            if (!optionSelected.equals(currentOption)) {
+                ref.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                            Dog dog = dataSnapshot.getValue(Dog.class);
+                            if (dog != null) {
+                                LatLng loc1 = new LatLng(lat, lng);
+                                LatLng loc2 = new LatLng(Double.parseDouble(dog.getLat()), Double.parseDouble(dog.getLng()));
+                                double distance = SphericalUtil.computeDistanceBetween(loc1, loc2);
+                                Map<String, Object> dogUpdates = new HashMap<>();
+                                dogUpdates.put("distance", distance / 1000);
+                                ref.child(dog.getId()).updateChildren(dogUpdates).addOnSuccessListener(aVoid -> {
+                                    Query newRef = ref.orderByChild("distance");
+                                    FirebaseRecyclerOptions<Dog> newOptions = new FirebaseRecyclerOptions.Builder<Dog>()
+                                            .setQuery(newRef, Dog.class)
+                                            .build();
+                                    dogAdapter.updateOptions(newOptions);
+                                }).addOnFailureListener(e -> Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), e.getMessage(), Snackbar.LENGTH_LONG)
+                                        .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
+                                        .show());
+                            }
+                        }
+                    }
 
-//        Collections.sort(allDogs, Dog.LocationComparator);
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
 
-        Query newRef = ref.orderByChild(optionSelected)
-                .startAt(capitalize(searchQuery)).endAt(capitalize(searchQuery) + "\uf8ff");
-        FirebaseRecyclerOptions<Dog> newOptions = new FirebaseRecyclerOptions.Builder<Dog>()
-                .setQuery(newRef, Dog.class)
-                .build();
-        dogAdapter.updateOptions(newOptions);
+                    }
+                });
+                currentOption = optionSelected;
+            }
+        } else {
+            if (!optionSelected.equals(currentOption) || typing) {
+                Query newRef = ref.orderByChild(optionSelected)
+                        .startAt(capitalize(searchQuery)).endAt(capitalize(searchQuery) + "\uf8ff");
+                FirebaseRecyclerOptions<Dog> newOptions = new FirebaseRecyclerOptions.Builder<Dog>()
+                        .setQuery(newRef, Dog.class)
+                        .build();
+                dogAdapter.updateOptions(newOptions);
+                currentOption = optionSelected;
+            }
+        }
     }
 
     @Override

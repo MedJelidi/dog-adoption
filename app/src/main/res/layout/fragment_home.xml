@@ -57,11 +57,11 @@
 
         <SearchView
             android:id="@+id/searchView"
-            android:layout_width="225dp"
+            android:layout_width="115dp"
             android:layout_height="60dp"
             android:layout_marginEnd="10dp"
             android:layout_marginRight="10dp"
-            android:layout_weight="0"
+            android:layout_weight="1"
             android:iconifiedByDefault="false"
             android:queryHint="Search Here" />
 
@@ -73,7 +73,7 @@
             android:layout_marginEnd="15dp"
             android:layout_marginRight="15dp"
             android:layout_weight="1"
-            android:hint="@string/search_by" />
+            android:hint="@string/sort_search_by" />
 
     </LinearLayout>
 

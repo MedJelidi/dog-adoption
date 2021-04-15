@@ -110,4 +110,5 @@
     <string name="choose_location">Choose location</string>
     <string name="ok">Ok</string>
     <string name="modify_location">Modify location</string>
+    <string name="sort_search_by">Sort/Search By</string>
 </resources>

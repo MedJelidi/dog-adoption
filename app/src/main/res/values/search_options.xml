@@ -2,7 +2,7 @@
 <resources>
     <string-array name="search_options">
         <item>race</item>
-        <item>location</item>
+        <item>distance</item>
         <item>name</item>
     </string-array>
 </resources>

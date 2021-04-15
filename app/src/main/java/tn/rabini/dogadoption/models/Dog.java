@@ -1,15 +1,9 @@
 package tn.rabini.dogadoption.models;
 
-import com.google.android.gms.maps.model.LatLng;
-import com.google.maps.android.SphericalUtil;
-
-import java.util.Comparator;
-
-import tn.rabini.dogadoption.MyLocation;
-
 public class Dog {
     private String id, name, race, age, gender, description, lat, lng, image, owner;
     private boolean ready;
+    private double distance;
 
     public Dog() {}
 
@@ -27,6 +21,7 @@ public class Dog {
         this.image = image;
         this.owner = owner;
         this.ready = ready;
+        this.distance = 0.0;
     }
 
     public String getId() {
@@ -93,14 +88,14 @@ public class Dog {
         return owner;
     }
 
-    public static Comparator<Dog> LocationComparator = (d1, d2) -> {
-        LatLng loc1 = new LatLng(Double.parseDouble(d1.getLat()), Double.parseDouble(d1.getLng()));
-        LatLng loc2 = new LatLng(Double.parseDouble(d2.getLat()), Double.parseDouble(d2.getLng()));
-        LatLng myLoc = new LatLng(MyLocation.myLat, MyLocation.myLng);
-        double distance1 = SphericalUtil.computeDistanceBetween(myLoc, loc1);
-        double distance2 = SphericalUtil.computeDistanceBetween(myLoc, loc2);
-        return Double.compare(distance1, distance2);
-    };
+
+    public double getDistance() {
+        return distance;
+    }
+
+    public void setDistance(double distance) {
+        this.distance = distance;
+    }
 
     @Override
     public String toString() {
@@ -113,6 +108,7 @@ public class Dog {
                 ", description='" + description + '\'' +
                 ", lat='" + lat + '\'' +
                 ", lng='" + lng + '\'' +
+                ", distance='" + distance + '\'' +
                 ", image='" + image + '\'' +
                 ", owner='" + owner + '\'' +
                 ", ready=" + ready +
