@@ -25,6 +25,7 @@ public class FavoritesFragment extends Fragment {
     private CircularProgressIndicator spinner;
     private LinearLayout noLikeLayout;
     private TextView dogListLink;
+    private double lat, lng;
 
     public FavoritesFragment() {
         // Required empty public constructor
@@ -33,6 +34,10 @@ public class FavoritesFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (getArguments() != null) {
+            lat = getArguments().getDouble("lat");
+            lng = getArguments().getDouble("lng");
+        }
         FirebaseAuth mAuth = FirebaseAuth.getInstance();
         if (mAuth.getCurrentUser() == null) {
             Bundle flipBundle = new Bundle();
@@ -59,7 +64,7 @@ public class FavoritesFragment extends Fragment {
         FirebaseRecyclerOptions<String> options = new FirebaseRecyclerOptions.Builder<String>()
                 .setQuery(ref, String.class)
                 .build();
-        likedDogAdapter = new LikedDogAdapter(options, requireContext(), requireActivity()) {
+        likedDogAdapter = new LikedDogAdapter(options, requireContext(), requireActivity(), lat, lng) {
             @Override
             public void onDataChanged() {
                 super.onDataChanged();

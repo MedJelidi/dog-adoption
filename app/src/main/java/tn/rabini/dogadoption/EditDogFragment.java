@@ -53,7 +53,7 @@ public class EditDogFragment extends Fragment {
     ActivityResultLauncher<Intent> startImageIntent;
     private TextInputLayout nameLayout, descriptionLayout;
     private TextInputEditText nameInput, descriptionInput;
-    private String nameValue, raceValue, ageValue, descriptionValue, locationValue, imageValue,
+    private String nameValue, raceValue, ageValue, descriptionValue, latValue, lngValue, imageValue,
             genderValue, dogId;
     private boolean readyValue;
     private TextView errorView;
@@ -64,11 +64,16 @@ public class EditDogFragment extends Fragment {
     private FirebaseAuth mAuth;
     private CircularProgressIndicator spinner;
     private LinearLayout submitCancelLayout;
-    private MaterialSpinner raceLayout, locationLayout;
+    private MaterialSpinner raceLayout;
+    private MapFragment mapFragment;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getParentFragmentManager().setFragmentResultListener("MAPPED", this, (requestKey, result) -> {
+            latValue = result.getString("latValue");
+            lngValue = result.getString("lngValue");
+        });
         if (getArguments() != null) {
             dogId = getArguments().getString("id");
             nameValue = getArguments().getString("name");
@@ -76,7 +81,8 @@ public class EditDogFragment extends Fragment {
             ageValue = getArguments().getString("age");
             genderValue = getArguments().getString("gender");
             descriptionValue = getArguments().getString("description");
-            locationValue = getArguments().getString("location");
+            latValue = getArguments().getString("lat");
+            lngValue = getArguments().getString("lng");
             imageValue = getArguments().getString("image");
             readyValue = getArguments().getBoolean("ready");
         }
@@ -104,7 +110,6 @@ public class EditDogFragment extends Fragment {
         Button ageButton = v.findViewById(R.id.ageButton);
         MaterialSpinner genderLayout = v.findViewById(R.id.genderLayout);
         descriptionLayout = v.findViewById(R.id.descriptionLayout);
-        locationLayout = v.findViewById(R.id.locationLayout);
         nameInput = v.findViewById(R.id.nameInput);
         descriptionInput = v.findViewById(R.id.descriptionInput);
         errorView = v.findViewById(R.id.errorView);
@@ -114,6 +119,12 @@ public class EditDogFragment extends Fragment {
         submitButton = v.findViewById(R.id.submitButton);
         Button cancelButton = v.findViewById(R.id.cancelButton);
         spinner = v.findViewById(R.id.spinner);
+
+        Button locationButton = v.findViewById(R.id.locationButton);
+        locationButton.setOnClickListener(view -> {
+            mapFragment = new MapFragment(true, Double.parseDouble(latValue), Double.parseDouble(lngValue));
+            mapFragment.show(requireActivity().getSupportFragmentManager(), null);
+        });
 
         nameInput.setText(nameValue);
 
@@ -158,24 +169,6 @@ public class EditDogFragment extends Fragment {
             @Override
             public void onItemSelected(@NonNull MaterialSpinner materialSpinner, View view, int i, long l) {
                 raceValue = materialSpinner.getSelectedItem().toString();
-            }
-
-            @Override
-            public void onNothingSelected(@NonNull MaterialSpinner materialSpinner) {
-            }
-        });
-
-        ArrayAdapter<CharSequence> locationAdapter = ArrayAdapter.createFromResource(requireContext(),
-                R.array.location_names, android.R.layout.simple_spinner_item);
-        locationAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        locationLayout.setAdapter(locationAdapter);
-
-        locationLayout.setSelection(locationAdapter.getPosition(locationValue));
-
-        locationLayout.setOnItemSelectedListener(new MaterialSpinner.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(@NonNull MaterialSpinner materialSpinner, View view, int i, long l) {
-                locationValue = materialSpinner.getSelectedItem().toString();
             }
 
             @Override
@@ -279,7 +272,8 @@ public class EditDogFragment extends Fragment {
                                     dogUpdates.put("name", nameValue.substring(0, 1).toUpperCase() + nameValue.substring(1));
                                     dogUpdates.put("race", raceValue);
                                     dogUpdates.put("age", ageValue);
-                                    dogUpdates.put("location", locationValue);
+                                    dogUpdates.put("lat", latValue);
+                                    dogUpdates.put("lng", lngValue);
                                     dogUpdates.put("image", imageUrl);
                                     dogUpdates.put("ready", readyValue);
                                     FirebaseDatabase.getInstance()
@@ -323,7 +317,6 @@ public class EditDogFragment extends Fragment {
     private boolean formValid() {
         nameLayout.setError(null);
         descriptionLayout.setError(null);
-        locationLayout.setError(null);
         errorView.setVisibility(View.INVISIBLE);
         if (nameValue == null || nameValue.length() < 2 || nameValue.length() > 20) {
             nameLayout.setError("2 < name < 20");
@@ -340,10 +333,6 @@ public class EditDogFragment extends Fragment {
         }
         if (descriptionValue == null || descriptionValue.length() == 0) {
             descriptionLayout.setError("Description required.");
-            return false;
-        }
-        if (locationValue == null || locationValue.length() == 0) {
-            locationLayout.setError("Location required.");
             return false;
         }
         return true;

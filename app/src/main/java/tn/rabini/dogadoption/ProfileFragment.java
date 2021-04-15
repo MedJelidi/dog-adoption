@@ -67,6 +67,7 @@ public class ProfileFragment extends Fragment {
     private Uri imagePath;
     private String userID;
     private boolean isUser = false;
+    private double lat, lng;
 
     public ProfileFragment() {
         // Required empty public constructor
@@ -110,8 +111,11 @@ public class ProfileFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null)
+        if (getArguments() != null) {
             userID = getArguments().getString("userID");
+            lat = getArguments().getDouble("lat");
+            lng = getArguments().getDouble("lng");
+        }
 
         mAuth = FirebaseAuth.getInstance();
         currentUser = mAuth.getCurrentUser();
@@ -262,7 +266,7 @@ public class ProfileFragment extends Fragment {
         FirebaseRecyclerOptions<String> options = new FirebaseRecyclerOptions.Builder<String>()
                 .setQuery(ref, String.class)
                 .build();
-        myDogAdapter = new MyDogAdapter(options, requireContext(), requireActivity(), isUser);
+        myDogAdapter = new MyDogAdapter(options, requireContext(), requireActivity(), isUser, lat, lng);
         myDogList.setAdapter(myDogAdapter);
         Button logOutButton = v.findViewById(R.id.logOutButton);
         if (isUser)

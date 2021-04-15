@@ -106,15 +106,16 @@
 
         </com.google.android.material.textfield.TextInputLayout>
 
-
-        <com.tiper.MaterialSpinner
-            android:id="@+id/locationLayout"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/locationButton"
+            style="?attr/materialButtonOutlinedStyle"
             android:layout_width="250dp"
-            android:layout_height="wrap_content"
+            android:layout_height="65dp"
             android:layout_gravity="center_horizontal"
+            android:text="@string/choose_location"
             android:layout_marginBottom="15dp"
-            android:hint="@string/location" />
+            app:icon="@drawable/baseline_room_24"
+            app:strokeColor="@color/design_default_color_primary" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/imagePickerButton"

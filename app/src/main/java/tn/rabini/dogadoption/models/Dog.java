@@ -1,21 +1,30 @@
 package tn.rabini.dogadoption.models;
 
+import com.google.android.gms.maps.model.LatLng;
+import com.google.maps.android.SphericalUtil;
+
+import java.util.Comparator;
+
+import tn.rabini.dogadoption.MyLocation;
+
 public class Dog {
-    private String id, name, race, age, gender, description, image, location, owner;
+    private String id, name, race, age, gender, description, lat, lng, image, owner;
     private boolean ready;
 
     public Dog() {}
 
     public Dog(String id, String name, String race, String age, String gender,
-               String description, String location, String image, String owner, boolean ready) {
+               String description, String lat, String lng, String image,
+               String owner, boolean ready) {
         this.id = id;
         this.name = name;
         this.description = description;
+        this.lat = lat;
+        this.lng = lng;
         this.race = race;
         this.age = age;
         this.gender = gender;
         this.image = image;
-        this.location = location;
         this.owner = owner;
         this.ready = ready;
     }
@@ -48,57 +57,50 @@ public class Dog {
         return age;
     }
 
-    public void setAge(String age) {
-        this.age = age;
-    }
-
     public String getGender() {
         return gender;
-    }
-
-    public void setGender(String gender) {
-        this.gender = gender;
     }
 
     public String getDescription() {
         return description;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public String getLat() {
+        return lat;
+    }
+
+    public void setLat(String lat) {
+        this.lat = lat;
+    }
+
+    public String getLng() {
+        return lng;
+    }
+
+    public void setLng(String lng) {
+        this.lng = lng;
     }
 
     public String getImage() {
         return image;
     }
 
-    public void setImage(String image) {
-        this.image = image;
-    }
-
-    public String getLocation() {
-        return location;
-    }
-
-    public void setLocation(String location) {
-        this.location = location;
-    }
-
     public boolean isReady() {
         return ready;
-    }
-
-    public void setReady(boolean ready) {
-        this.ready = ready;
     }
 
     public String getOwner() {
         return owner;
     }
 
-    public void setOwner(String owner) {
-        this.owner = owner;
-    }
+    public static Comparator<Dog> LocationComparator = (d1, d2) -> {
+        LatLng loc1 = new LatLng(Double.parseDouble(d1.getLat()), Double.parseDouble(d1.getLng()));
+        LatLng loc2 = new LatLng(Double.parseDouble(d2.getLat()), Double.parseDouble(d2.getLng()));
+        LatLng myLoc = new LatLng(MyLocation.myLat, MyLocation.myLng);
+        double distance1 = SphericalUtil.computeDistanceBetween(myLoc, loc1);
+        double distance2 = SphericalUtil.computeDistanceBetween(myLoc, loc2);
+        return Double.compare(distance1, distance2);
+    };
 
     @Override
     public String toString() {
@@ -109,8 +111,9 @@ public class Dog {
                 ", age='" + age + '\'' +
                 ", gender='" + gender + '\'' +
                 ", description='" + description + '\'' +
+                ", lat='" + lat + '\'' +
+                ", lng='" + lng + '\'' +
                 ", image='" + image + '\'' +
-                ", location='" + location + '\'' +
                 ", owner='" + owner + '\'' +
                 ", ready=" + ready +
                 '}';

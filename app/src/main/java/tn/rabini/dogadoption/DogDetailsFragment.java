@@ -52,10 +52,20 @@ import tn.rabini.dogadoption.models.User;
 
 public class DogDetailsFragment extends Fragment {
 
-    private String id, name, race, age, gender, description, image, location, owner, contactNumber;
+    private String id;
+    private String name;
+    private String race;
+    private String age;
+    private String gender;
+    private String description;
+    private String distance;
+    private String image;
+    private String owner;
+    private String contactNumber;
     private int previousFragment;
     private ToggleButton likeButton;
-    private TextView dogOwner, dogContact;
+    private TextView dogOwner;
+    private TextView dogContact;
     private FirebaseAuth mAuth;
     private boolean ready;
     private CircularProgressIndicator spinner;
@@ -75,9 +85,9 @@ public class DogDetailsFragment extends Fragment {
             age = getArguments().getString("age");
             gender = getArguments().getString("gender");
             description = getArguments().getString("description");
+            distance = getArguments().getString("distance");
             image = getArguments().getString("image");
             ready = getArguments().getBoolean("ready");
-            location = getArguments().getString("location");
             owner = getArguments().getString("owner");
             previousFragment = getArguments().getInt("previous_fragment");
         }
@@ -146,6 +156,7 @@ public class DogDetailsFragment extends Fragment {
 
         dogName.setText(name);
         dogRace.setText(race);
+        dogLocation.setText(distance);
         dogReady.setText(ready ? "Available" : "Not available at the moment");
 
         // SET AVAILABLE OR NOT IMAGE
@@ -166,7 +177,6 @@ public class DogDetailsFragment extends Fragment {
 
         dogGender.setText(getString(R.string.gender_detail, gender));
         dogDescription.setText(description);
-        dogLocation.setText(location);
 
         // GET OWNER INFO
         FirebaseDatabase.getInstance().getReference("Users").child(owner)
@@ -332,7 +342,7 @@ public class DogDetailsFragment extends Fragment {
                             HashMap<String, String> likedDogs;
                             if (user.getLikedDogs() != null) {
                                 likedDogs = user.getLikedDogs();
-                                for (String k: likedDogs.keySet()) {
+                                for (String k : likedDogs.keySet()) {
                                     String dogID = likedDogs.get(k);
                                     if (dogID != null) {
                                         if (dogID.equals(id)) {

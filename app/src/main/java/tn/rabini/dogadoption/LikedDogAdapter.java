@@ -19,6 +19,7 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -26,8 +27,10 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.maps.android.SphericalUtil;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import tn.rabini.dogadoption.models.Dog;
@@ -37,11 +40,14 @@ public class LikedDogAdapter extends FirebaseRecyclerAdapter<String, LikedDogAda
 
     private final Context context;
     private final FragmentActivity activity;
+    private final double lat, lng;
 
-    public LikedDogAdapter(@NonNull FirebaseRecyclerOptions<String> options, Context context, FragmentActivity activity) {
+    public LikedDogAdapter(@NonNull FirebaseRecyclerOptions<String> options, Context context, FragmentActivity activity, double lat, double lng) {
         super(options);
         this.context = context;
         this.activity = activity;
+        this.lat = lat;
+        this.lng = lng;
     }
 
     @Override
@@ -69,6 +75,9 @@ public class LikedDogAdapter extends FirebaseRecyclerAdapter<String, LikedDogAda
                                     .into(holder.dogImage);
 
                             holder.dogName.setText(dog.getName());
+                            LatLng loc1 = new LatLng(lat, lng);
+                            LatLng loc2 = new LatLng(Double.parseDouble(dog.getLat()), Double.parseDouble(dog.getLng()));
+                            double distance = SphericalUtil.computeDistanceBetween(loc1, loc2);
                             holder.itemView.setOnClickListener(view -> {
                                 Bundle flipBundle = new Bundle();
                                 flipBundle.putString("flip", "ToDogDetails");
@@ -81,7 +90,7 @@ public class LikedDogAdapter extends FirebaseRecyclerAdapter<String, LikedDogAda
                                 flipBundle.putString("gender", dog.getGender());
                                 flipBundle.putString("description", dog.getDescription());
                                 flipBundle.putBoolean("ready", dog.isReady());
-                                flipBundle.putString("location", dog.getLocation());
+                                flipBundle.putString("distance", String.format(Locale.CANADA, "%.2f", distance / 1000)+"km away");
                                 flipBundle.putString("owner", dog.getOwner());
                                 ((AppCompatActivity) context).getSupportFragmentManager().setFragmentResult("flipResult", flipBundle);
                             });

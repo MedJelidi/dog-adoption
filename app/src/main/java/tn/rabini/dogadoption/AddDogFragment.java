@@ -56,7 +56,7 @@ public class AddDogFragment extends Fragment {
     ActivityResultLauncher<Intent> startImageIntent;
     private TextInputLayout nameLayout, descriptionLayout;
     private TextInputEditText nameInput, descriptionInput;
-    private String nameValue, raceValue, ageValue, descriptionValue, locationValue,
+    private String nameValue, raceValue, ageValue, descriptionValue,
             genderValue = "Male";
     private boolean readyValue;
     private TextView errorView;
@@ -67,7 +67,8 @@ public class AddDogFragment extends Fragment {
     private FirebaseAuth mAuth;
     private CircularProgressIndicator spinner;
     private LinearLayout submitCancelLayout;
-    private MaterialSpinner raceLayout, locationLayout;
+    private MaterialSpinner raceLayout;
+    private MapFragment mapFragment;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -96,7 +97,6 @@ public class AddDogFragment extends Fragment {
         raceLayout = v.findViewById(R.id.raceLayout);
         Button ageButton = v.findViewById(R.id.ageButton);
         descriptionLayout = v.findViewById(R.id.descriptionLayout);
-        locationLayout = v.findViewById(R.id.locationLayout);
         nameInput = v.findViewById(R.id.nameInput);
         descriptionInput = v.findViewById(R.id.descriptionInput);
         errorView = v.findViewById(R.id.errorView);
@@ -106,6 +106,12 @@ public class AddDogFragment extends Fragment {
         submitButton = v.findViewById(R.id.submitButton);
         Button cancelButton = v.findViewById(R.id.cancelButton);
         spinner = v.findViewById(R.id.spinner);
+
+        Button locationButton = v.findViewById(R.id.locationButton);
+        locationButton.setOnClickListener(view -> {
+            mapFragment = new MapFragment(false, 0, 0);
+            mapFragment.show(requireActivity().getSupportFragmentManager(), null);
+        });
 
         MaterialDatePicker<Long> agePicker = handleCalendar();
 
@@ -145,22 +151,6 @@ public class AddDogFragment extends Fragment {
             @Override
             public void onItemSelected(@NonNull MaterialSpinner materialSpinner, View view, int i, long l) {
                 raceValue = materialSpinner.getSelectedItem().toString();
-            }
-
-            @Override
-            public void onNothingSelected(@NonNull MaterialSpinner materialSpinner) {
-            }
-        });
-
-        ArrayAdapter<CharSequence> locationAdapter = ArrayAdapter.createFromResource(requireContext(),
-                R.array.location_names, android.R.layout.simple_spinner_item);
-        locationAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        locationLayout.setAdapter(locationAdapter);
-
-        locationLayout.setOnItemSelectedListener(new MaterialSpinner.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(@NonNull MaterialSpinner materialSpinner, View view, int i, long l) {
-                locationValue = materialSpinner.getSelectedItem().toString();
             }
 
             @Override
@@ -219,7 +209,8 @@ public class AddDogFragment extends Fragment {
                                     ageValue,
                                     genderValue,
                                     descriptionValue,
-                                    locationValue,
+                                    String.valueOf(mapFragment.getLat()),
+                                    String.valueOf(mapFragment.getLng()),
                                     uri.toString(),
                                     mAuth.getCurrentUser().getUid(),
                                     readyValue);
@@ -287,7 +278,6 @@ public class AddDogFragment extends Fragment {
     private boolean formValid() {
         nameLayout.setError(null);
         descriptionLayout.setError(null);
-        locationLayout.setError(null);
         raceLayout.setError(null);
         errorView.setVisibility(View.INVISIBLE);
         if (nameValue == null || nameValue.length() < 2 || nameValue.length() > 20) {
@@ -307,8 +297,9 @@ public class AddDogFragment extends Fragment {
             descriptionLayout.setError("Description required.");
             return false;
         }
-        if (locationValue == null || locationValue.length() == 0) {
-            locationLayout.setError("Location required.");
+        if (mapFragment == null || mapFragment.getLat() == 0 || mapFragment.getLng() == 0) {
+            errorView.setText(getString(R.string.location_required));
+            errorView.setVisibility(View.VISIBLE);
             return false;
         }
         if (imagePath == null) {

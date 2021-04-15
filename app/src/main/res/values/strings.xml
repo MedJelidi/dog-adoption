@@ -101,7 +101,13 @@
     <string name="dogs">Dogs</string>
     <string name="login_to_show">(Login to show)</string>
     <string name="verify_to_show">(Verify your email to show)</string>
+    <string name="distance">%skm</string>
     <string name="age">Age</string>
     <string name="age_required">Age required.</string>
     <string name="birth">Birth</string>
+    <string name="api_key">AIzaSyDlcxbVy78CJHTvh9Ce55zmfYVTtyqeN04</string>
+    <string name="location_required">Location required.</string>
+    <string name="choose_location">Choose location</string>
+    <string name="ok">Ok</string>
+    <string name="modify_location">Modify location</string>
 </resources>

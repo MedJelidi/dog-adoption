@@ -1,6 +1,11 @@
 package tn.rabini.dogadoption;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,6 +16,7 @@ import android.widget.SearchView;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -23,16 +29,39 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.tiper.MaterialSpinner;
 
+import java.util.ArrayList;
+import java.util.Collections;
+
 import tn.rabini.dogadoption.models.Dog;
 
 public class HomeFragment extends Fragment {
 
+    private final DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Dogs");
+    private final FirebaseRecyclerOptions<Dog> adapterOptions = new FirebaseRecyclerOptions.Builder<Dog>()
+            .setQuery(ref, Dog.class)
+            .build();
     private RecyclerView dogList;
     private DogAdapter dogAdapter;
-    private DatabaseReference ref;
     private CircularProgressIndicator spinner;
     private String optionSelected = "race", searchQuery = "";
     private LinearLayout searchBar;
+    private ArrayList<Dog> allDogs;
+    private Double lat, lng;
+    private final BroadcastReceiver cordReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Bundle result = intent.getExtras();
+            if (result != null) {
+                lat = result.getDouble("lat");
+                lng = result.getDouble("lng");
+                if (getActivity() != null) {
+                    dogAdapter = new DogAdapter(adapterOptions, requireContext(), lat, lng);
+                    dogList.swapAdapter(dogAdapter, true);
+                    dogAdapter.startListening();
+                }
+            }
+        }
+    };
 
     public HomeFragment() {
         // Required empty public constructor
@@ -41,7 +70,12 @@ public class HomeFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ref = FirebaseDatabase.getInstance().getReference().child("Dogs");
+        if (getArguments() != null) {
+            lat = getArguments().getDouble("lat");
+            lng = getArguments().getDouble("lng");
+        }
+        LocalBroadcastManager.getInstance(requireContext()).registerReceiver(cordReceiver,
+                new IntentFilter("my-cord"));
     }
 
     @Override
@@ -76,16 +110,14 @@ public class HomeFragment extends Fragment {
         });
 
         dogList.setLayoutManager(new LinearLayoutManager(requireContext()));
-        FirebaseRecyclerOptions<Dog> options = new FirebaseRecyclerOptions.Builder<Dog>()
-                .setQuery(ref, Dog.class)
-                .build();
-        dogAdapter = new DogAdapter(options, requireContext()) {
+        dogAdapter = new DogAdapter(adapterOptions, requireContext(), lat, lng) {
             @Override
             public void onDataChanged() {
                 super.onDataChanged();
                 spinner.setVisibility(View.GONE);
                 dogList.setVisibility(View.VISIBLE);
                 searchBar.setVisibility(View.VISIBLE);
+                allDogs = new ArrayList<>(dogAdapter.getSnapshots());
             }
         };
         dogList.setAdapter(dogAdapter);
@@ -129,6 +161,9 @@ public class HomeFragment extends Fragment {
     }
 
     private void updateSearch() {
+
+//        Collections.sort(allDogs, Dog.LocationComparator);
+
         Query newRef = ref.orderByChild(optionSelected)
                 .startAt(capitalize(searchQuery)).endAt(capitalize(searchQuery) + "\uf8ff");
         FirebaseRecyclerOptions<Dog> newOptions = new FirebaseRecyclerOptions.Builder<Dog>()
