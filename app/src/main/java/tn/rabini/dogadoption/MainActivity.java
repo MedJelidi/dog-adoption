@@ -53,7 +53,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-        locationListener = initLocationListener();
         setContentView(R.layout.activity_main);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
         getSupportActionBar().hide();
@@ -95,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
         if (ActivityCompat.checkSelfPermission(getApplicationContext(),
                 Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             locationListener = initLocationListener();
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 1, locationListener);
+            locationManager.requestSingleUpdate(LocationManager.GPS_PROVIDER, locationListener, null);
         }
     }
 
@@ -182,13 +181,6 @@ public class MainActivity extends AppCompatActivity {
         alertDialog.show();
     }
 
-    private void setLatLng() {
-        if (ActivityCompat.checkSelfPermission(
-                this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
-        }
-    }
-
     private void handleGPS() {
         BroadcastReceiver gpsReceiver = new BroadcastReceiver() {
             @RequiresApi(api = Build.VERSION_CODES.P)
@@ -198,7 +190,6 @@ public class MainActivity extends AppCompatActivity {
                     if (locationManager.isLocationEnabled()) {
                         Log.v("locationCHANNNNNGED", "enabled");
                         updateLocation();
-                        setLatLng();
                     } else {
                         Log.v("locationCHANNNNNGED", "disabled");
                         locationLostDialog();
@@ -228,7 +219,6 @@ public class MainActivity extends AppCompatActivity {
             try {
                 LocationSettingsResponse response = task.getResult(ApiException.class);
                 updateLocation();
-                setLatLng();
                 // All location settings are satisfied. The client can initialize location
                 // requests here.
             } catch (ApiException exception) {
@@ -325,7 +315,7 @@ public class MainActivity extends AppCompatActivity {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 ContextCompat.checkSelfPermission(MainActivity.this,
                         Manifest.permission.ACCESS_FINE_LOCATION);
-                setLatLng();
+                updateLocation();
             } else {
                 final Snackbar snackBar = Snackbar.make(findViewById(R.id.coordinatorLayout),
                         "Please turn on GPS for accurate location data.", Snackbar.LENGTH_INDEFINITE);
@@ -343,7 +333,7 @@ public class MainActivity extends AppCompatActivity {
                 case Activity.RESULT_OK:
                     // All required changes were successfully made
                     Log.i("GPS", "onActivityResult: GPS Enabled by user");
-                    setLatLng();
+                    updateLocation();
                     break;
                 case Activity.RESULT_CANCELED:
                     final Snackbar snackBar = Snackbar.make(findViewById(R.id.coordinatorLayout),
