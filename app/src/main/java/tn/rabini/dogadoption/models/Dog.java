@@ -64,16 +64,8 @@ public class Dog {
         return lat;
     }
 
-    public void setLat(String lat) {
-        this.lat = lat;
-    }
-
     public String getLng() {
         return lng;
-    }
-
-    public void setLng(String lng) {
-        this.lng = lng;
     }
 
     public String getImage() {
@@ -86,15 +78,6 @@ public class Dog {
 
     public String getOwner() {
         return owner;
-    }
-
-
-    public double getDistance() {
-        return distance;
-    }
-
-    public void setDistance(double distance) {
-        this.distance = distance;
     }
 
     @Override

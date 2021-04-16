@@ -1,13 +1,13 @@
 package tn.rabini.dogadoption;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,15 +23,19 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.material.progressindicator.CircularProgressIndicator;
 
 public class MapFragment extends DialogFragment {
 
     private final boolean edit;
     private GoogleMap map;
-    private double lat, lng;
+    private double lat, lng, cLat = 0, cLng = 0;
     private SupportMapFragment mapFragment;
     private MarkerOptions markerOptions;
     private LocationManager locationManager;
+    private Button currentLocationButton;
+    private Marker marker;
+    private CircularProgressIndicator spinner;
     private final LocationListener locationListener = new LocationListener() {
         @Override
         public void onLocationChanged(Location location) {
@@ -39,13 +43,20 @@ public class MapFragment extends DialogFragment {
                 mapFragment.getMapAsync(googleMap -> {
                     lat = location.getLatitude();
                     lng = location.getLongitude();
+                    cLat = lat;
+                    cLng = lng;
                     locationManager.removeUpdates(locationListener);
                     map = googleMap;
+                    if (marker != null) {
+                        marker.remove();
+                    }
                     LatLng myLocation = new LatLng(lat, lng);
                     map.animateCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 15));
                     markerOptions = new MarkerOptions().position(myLocation).draggable(true);
-                    map.addMarker(markerOptions);
+                    marker = map.addMarker(markerOptions);
                     dragMarkerListener();
+                    spinner.setVisibility(View.GONE);
+                    currentLocationButton.setVisibility(View.VISIBLE);
                 });
             }
         }
@@ -68,8 +79,8 @@ public class MapFragment extends DialogFragment {
 
     public MapFragment(boolean edit, double lat, double lng) {
         this.edit = edit;
-        this.lat = lat == 0 ? 35.97149 : lat;
-        this.lng = lng == 0 ? -96.46391 : lng;
+        this.lat = lat;
+        this.lng = lng;
     }
 
     @Override
@@ -83,17 +94,33 @@ public class MapFragment extends DialogFragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_map, container, false);
+        spinner = v.findViewById(R.id.spinner);
         Button okButton = v.findViewById(R.id.okButton);
         Button cancelButton = v.findViewById(R.id.cancelButton);
+        currentLocationButton = v.findViewById(R.id.currentButton);
+        currentLocationButton.setOnClickListener(view -> {
+            if (ActivityCompat.checkSelfPermission(
+                    requireActivity(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                    && locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                getCurrentLocation();
+            } else {
+                AlertDialog alertDialog = new AlertDialog.Builder(requireContext()).create();
+                alertDialog.setTitle("No GPS...");
+                alertDialog.setMessage("Please make sure GPS is enabled and permission is granted.");
+                alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                        (dialog, which) -> dialog.dismiss());
+                alertDialog.show();
+            }
+        });
         okButton.setOnClickListener(view -> {
             this.dismiss();
             setValues();
-            Log.v("looooooooooooooooooooog", getLat() + ", " + getLng());
         });
         cancelButton.setOnClickListener(view -> {
             this.dismiss();
             setValues();
         });
+
         mapFragment = (SupportMapFragment) this.getChildFragmentManager()
                 .findFragmentById(R.id.mapFragment);
         if (edit) {
@@ -103,26 +130,30 @@ public class MapFragment extends DialogFragment {
                 map = googleMap;
                 LatLng Tunisia = new LatLng(lat, lng);
                 markerOptions = new MarkerOptions().position(Tunisia).draggable(true);
-                map.addMarker(markerOptions);
+                marker = map.addMarker(markerOptions);
                 map.animateCamera(CameraUpdateFactory.newLatLngZoom(Tunisia, 15));
                 dragMarkerListener();
+                spinner.setVisibility(View.GONE);
+                currentLocationButton.setVisibility(View.VISIBLE);
             });
         } else {
             if (ActivityCompat.checkSelfPermission(
-                    requireActivity(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                    requireActivity(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                    && locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                 getCurrentLocation();
             } else {
                 mapFragment.getMapAsync(googleMap -> {
                     map = googleMap;
                     LatLng Tunisia = new LatLng(lat, lng);
                     markerOptions = new MarkerOptions().position(Tunisia).draggable(true);
-                    map.addMarker(markerOptions);
-                    map.animateCamera(CameraUpdateFactory.newLatLngZoom(Tunisia, 15));
+                    marker = map.addMarker(markerOptions);
+                    map.animateCamera(CameraUpdateFactory.newLatLng(Tunisia));
                     dragMarkerListener();
+                    spinner.setVisibility(View.GONE);
+                    currentLocationButton.setVisibility(View.VISIBLE);
                 });
             }
         }
-
 
         return v;
     }
@@ -146,16 +177,31 @@ public class MapFragment extends DialogFragment {
                 lng = latLng.longitude;
                 map.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
                 markerOptions.position(latLng);
-                Log.v("looooooooooooooooooooog", getLat() + ", " + getLng());
             }
         });
     }
 
     private void getCurrentLocation() {
-        if (ActivityCompat.checkSelfPermission(
-                requireActivity(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+        if (cLat == 0) {
+            if (ActivityCompat.checkSelfPermission(
+                    requireActivity(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                spinner.setVisibility(View.VISIBLE);
+                currentLocationButton.setVisibility(View.GONE);
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+            }
+        } else {
+            mapFragment.getMapAsync(googleMap -> {
+                if (marker != null) {
+                    marker.remove();
+                }
+                LatLng myLocation = new LatLng(cLat, cLng);
+                map.animateCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 15));
+                markerOptions = new MarkerOptions().position(myLocation).draggable(true);
+                marker = map.addMarker(markerOptions);
+                dragMarkerListener();
+            });
         }
+
     }
 
     public double getLat() {

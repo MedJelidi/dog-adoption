@@ -111,4 +111,6 @@
     <string name="ok">Ok</string>
     <string name="modify_location">Modify location</string>
     <string name="sort_search_by">Sort/Search By</string>
+    <string name="go_my_current_location">Go my current Location</string>
+    <string name="go_to_my_current_location">Go to my current location</string>
 </resources>

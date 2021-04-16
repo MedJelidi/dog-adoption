@@ -52,12 +52,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-//        new Splashy(this)
-//                .setLogo(R.drawable.splash_logo_black)
-//                .setTitle("Dog Adoption")
-//                .setTitleColor(R.color.black)
-//                .setDuration(1000)
-//                .show();
         locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
         locationListener = initLocationListener();
         setContentView(R.layout.activity_main);
@@ -93,6 +87,16 @@ public class MainActivity extends AppCompatActivity {
         handleGPS();
         handleInternet();
         replaceFragment(HomeFragment.class, gpsBundle());
+    }
+
+    private void updateLocation() {
+        Log.v("perrrrrrrrmissssion", String.valueOf(ActivityCompat.checkSelfPermission(getApplicationContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED));
+        if (ActivityCompat.checkSelfPermission(getApplicationContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            locationListener = initLocationListener();
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 1, locationListener);
+        }
     }
 
     private LocationListener initLocationListener() {
@@ -147,13 +151,7 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onAvailable(Network network) {
                     super.onAvailable(network);
-                    if (ActivityCompat.checkSelfPermission(getApplicationContext(),
-                            Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                            && ActivityCompat.checkSelfPermission(getApplicationContext(),
-                            Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                        locationListener = initLocationListener();
-                        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 5, locationListener);
-                    }
+                    updateLocation();
                 }
 
                 @Override
@@ -199,6 +197,7 @@ public class MainActivity extends AppCompatActivity {
                 if (intent.getAction().matches(LocationManager.PROVIDERS_CHANGED_ACTION)) {
                     if (locationManager.isLocationEnabled()) {
                         Log.v("locationCHANNNNNGED", "enabled");
+                        updateLocation();
                         setLatLng();
                     } else {
                         Log.v("locationCHANNNNNGED", "disabled");
@@ -228,6 +227,7 @@ public class MainActivity extends AppCompatActivity {
         result.addOnCompleteListener(task -> {
             try {
                 LocationSettingsResponse response = task.getResult(ApiException.class);
+                updateLocation();
                 setLatLng();
                 // All location settings are satisfied. The client can initialize location
                 // requests here.
