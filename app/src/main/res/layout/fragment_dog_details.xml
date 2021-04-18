@@ -67,7 +67,7 @@
                 android:adjustViewBounds="true"
                 android:contentDescription="@string/dog_picture"
                 android:maxWidth="250dp"
-                android:maxHeight="150dp"
+                android:maxHeight="250dp"
                 android:scaleType="fitCenter" />
 
             <LinearLayout

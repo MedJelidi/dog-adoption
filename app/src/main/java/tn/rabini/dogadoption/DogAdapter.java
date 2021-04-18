@@ -45,6 +45,7 @@ public class DogAdapter extends FirebaseRecyclerAdapter<Dog, DogAdapter.DogViewH
         Glide.with(context)
                 .load(model.getImage())
                 .fitCenter()
+                .circleCrop()
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .placeholder(circularProgressDrawable)
                 .error(R.drawable.ic_baseline_error_24)
@@ -79,57 +80,6 @@ public class DogAdapter extends FirebaseRecyclerAdapter<Dog, DogAdapter.DogViewH
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.single_dog, parent, false);
         return new DogAdapter.DogViewHolder(v);
     }
-
-//    private void calculateDistance(DogAdapter.DogViewHolder holder, Dog model) {
-//        if (ActivityCompat.checkSelfPermission(
-//                context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-//            LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-//            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 5, new LocationListener() {
-//                @Override
-//                public void onLocationChanged(Location location) {
-//                    if (location != null) {
-//                        LatLng loc1 = new LatLng(location.getLatitude(), location.getLongitude());
-//                        LatLng loc2 = new LatLng(Double.parseDouble(model.getLat()), Double.parseDouble(model.getLng()));
-//                        double distance = SphericalUtil.computeDistanceBetween(loc1, loc2);
-//                        holder.itemView.setOnClickListener(view -> {
-//                            Bundle flipBundle = new Bundle();
-//                            flipBundle.putString("flip", "ToDogDetails");
-//                            flipBundle.putInt("previous_fragment", 0);
-//                            flipBundle.putString("id", model.getId());
-//                            flipBundle.putString("image", model.getImage());
-//                            flipBundle.putString("name", model.getName());
-//                            flipBundle.putString("race", model.getRace());
-//                            flipBundle.putString("age", model.getAge());
-//                            flipBundle.putString("gender", model.getGender());
-//                            flipBundle.putString("description", model.getDescription());
-//                            flipBundle.putString("distance", String.format(Locale.CANADA, "%.2f", distance / 1000)+"km away");
-//                            flipBundle.putBoolean("ready", model.isReady());
-//                            flipBundle.putString("owner", model.getOwner());
-//                            ((AppCompatActivity) context).getSupportFragmentManager().setFragmentResult("flipResult", flipBundle);
-//                        });
-//                        holder.dogRace.setText(model.getRace());
-//                        holder.dogName.setText(model.getName());
-//                        holder.dogLocation.setText(String.format(Locale.CANADA, "%.2f", distance / 1000)+"km away");
-//                    }
-//                }
-//
-//                @Override
-//                public void onStatusChanged(String s, int i, Bundle bundle) {
-//
-//                }
-//
-//                @Override
-//                public void onProviderEnabled(String s) {
-//
-//                }
-//
-//                @Override
-//                public void onProviderDisabled(String s) {
-//
-//                }
-//            });
-//        }
-//    }
 
     public static class DogViewHolder extends RecyclerView.ViewHolder {
 

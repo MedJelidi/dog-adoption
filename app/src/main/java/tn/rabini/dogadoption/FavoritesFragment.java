@@ -98,4 +98,10 @@ public class FavoritesFragment extends Fragment {
         super.onStop();
         likedDogAdapter.stopListening();
     }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        likedDogAdapter.cleanupListeners();
+    }
 }

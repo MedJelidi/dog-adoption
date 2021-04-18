@@ -58,7 +58,7 @@ public class ProfileFragment extends Fragment {
     private FirebaseAuth mAuth;
     private FirebaseUser currentUser;
     private MyDogAdapter myDogAdapter;
-    private DatabaseReference ref;
+    private DatabaseReference mUserDogsReference;
     private TextView usernameView, phoneView, emailView;
     private ImageView profileImage;
     private CircularProgressIndicator spinner;
@@ -68,6 +68,8 @@ public class ProfileFragment extends Fragment {
     private String userID;
     private boolean isUser = false;
     private double lat, lng;
+    private DatabaseReference mUsersReference, mCurrentUserReference, mUserReference;
+    private ValueEventListener mCurrentUserListener, mUserListener, mUsersListener;
 
     public ProfileFragment() {
         // Required empty public constructor
@@ -119,6 +121,7 @@ public class ProfileFragment extends Fragment {
 
         mAuth = FirebaseAuth.getInstance();
         currentUser = mAuth.getCurrentUser();
+        mUsersReference = FirebaseDatabase.getInstance().getReference("Users");
 
         if (currentUser != null)
             isUser = userID.equals(currentUser.getUid());
@@ -138,36 +141,39 @@ public class ProfileFragment extends Fragment {
                             ref.putFile(imagePath)
                                     .addOnSuccessListener(taskSnapshot -> {
                                         final Task<Uri> firebaseUri = taskSnapshot.getStorage().getDownloadUrl();
-                                        firebaseUri.addOnSuccessListener(uri -> FirebaseDatabase.getInstance().getReference().child("Users").child(currentUser.getUid())
-                                                .addListenerForSingleValueEvent(new ValueEventListener() {
-                                                    @Override
-                                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                                        if (getActivity() == null) {
-                                                            return;
-                                                        }
-                                                        User user = snapshot.getValue(User.class);
-                                                        if (user != null) {
-                                                            if (user.getPicture().equals("https://firebasestorage.googleapis.com/v0/b/dogadoption-94cad.appspot.com/o/images%2Fdefault_profile_picture.png?alt=media&token=8c2794b6-2f3a-40fd-9b0c-9964a212bcf4")) {
-                                                                updatePicture(uri);
-                                                            } else {
-                                                                FirebaseStorage.getInstance()
-                                                                        .getReferenceFromUrl(user.getPicture())
-                                                                        .delete()
-                                                                        .addOnSuccessListener(aVoid -> updatePicture(uri))
-                                                                        .addOnFailureListener(e -> Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), e.getMessage(), Snackbar.LENGTH_LONG)
-                                                                                .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
-                                                                                .show());
-                                                            }
+                                        firebaseUri.addOnSuccessListener(uri -> {
+                                            mCurrentUserReference = mUsersReference.child(currentUser.getUid());
+                                            mCurrentUserListener = new ValueEventListener() {
+                                                @Override
+                                                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                                    if (getActivity() == null) {
+                                                        return;
+                                                    }
+                                                    User user = snapshot.getValue(User.class);
+                                                    if (user != null) {
+                                                        if (user.getPicture().equals("https://firebasestorage.googleapis.com/v0/b/dogadoption-94cad.appspot.com/o/images%2Fdefault_profile_picture.png?alt=media&token=8c2794b6-2f3a-40fd-9b0c-9964a212bcf4")) {
+                                                            updatePicture(uri);
+                                                        } else {
+                                                            FirebaseStorage.getInstance()
+                                                                    .getReferenceFromUrl(user.getPicture())
+                                                                    .delete()
+                                                                    .addOnSuccessListener(aVoid -> updatePicture(uri))
+                                                                    .addOnFailureListener(e -> Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), e.getMessage(), Snackbar.LENGTH_LONG)
+                                                                            .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
+                                                                            .show());
                                                         }
                                                     }
+                                                }
 
-                                                    @Override
-                                                    public void onCancelled(@NonNull DatabaseError error) {
-                                                        Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), error.getMessage(), Snackbar.LENGTH_LONG)
-                                                                .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
-                                                                .show();
-                                                    }
-                                                }));
+                                                @Override
+                                                public void onCancelled(@NonNull DatabaseError error) {
+                                                    Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), error.getMessage(), Snackbar.LENGTH_LONG)
+                                                            .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
+                                                            .show();
+                                                }
+                                            };
+                                            mCurrentUserReference.addListenerForSingleValueEvent(mCurrentUserListener);
+                                        });
                                     })
                                     .addOnFailureListener(e -> {
                                         spinner.setVisibility(View.GONE);
@@ -182,46 +188,47 @@ public class ProfileFragment extends Fragment {
                         }
                     });
 
-        FirebaseDatabase.getInstance().getReference().child("Users").child(userID)
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        if (getActivity() == null) {
-                            return;
-                        }
-                        Log.v("uuuuuuuuuseeeeeerrrrrr", snapshot.getValue().toString());
-                        User user = snapshot.getValue(User.class);
-                        if (user != null) {
-                            usernameView.setText(user.getUsername());
-                            phoneView.setText(user.getPhone());
-                            emailView.setText(user.getEmail());
+        mUserReference = mUsersReference.child(userID);
+        mUserListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (getActivity() == null) {
+                    return;
+                }
+                Log.v("uuuuuuuuuseeeeeerrrrrr", snapshot.getValue().toString());
+                User user = snapshot.getValue(User.class);
+                if (user != null) {
+                    usernameView.setText(user.getUsername());
+                    phoneView.setText(user.getPhone());
+                    emailView.setText(user.getEmail());
 
-                            CircularProgressDrawable circularProgressDrawable = new CircularProgressDrawable(requireContext());
-                            circularProgressDrawable.setStrokeWidth(5f);
-                            circularProgressDrawable.setCenterRadius(30f);
-                            circularProgressDrawable.start();
+                    CircularProgressDrawable circularProgressDrawable = new CircularProgressDrawable(requireContext());
+                    circularProgressDrawable.setStrokeWidth(5f);
+                    circularProgressDrawable.setCenterRadius(30f);
+                    circularProgressDrawable.start();
 
-                            Glide.with(requireContext())
-                                    .load(user.getPicture())
-                                    .fitCenter()
-                                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-                                    .placeholder(circularProgressDrawable)
-                                    .circleCrop()
-                                    .error(R.drawable.ic_baseline_error_24)
-                                    .into(profileImage);
+                    Glide.with(requireContext())
+                            .load(user.getPicture())
+                            .fitCenter()
+                            .diskCacheStrategy(DiskCacheStrategy.ALL)
+                            .placeholder(circularProgressDrawable)
+                            .circleCrop()
+                            .error(R.drawable.ic_baseline_error_24)
+                            .into(profileImage);
 
-                            spinner.setVisibility(View.GONE);
-                            allLayouts.setVisibility(View.VISIBLE);
-                            setHasOptionsMenu(true);
-                        }
-                    }
+                    spinner.setVisibility(View.GONE);
+                    allLayouts.setVisibility(View.VISIBLE);
+                    setHasOptionsMenu(true);
+                }
+            }
 
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
 
-                    }
-                });
-        ref = FirebaseDatabase.getInstance()
+            }
+        };
+        mUserReference.addListenerForSingleValueEvent(mUserListener);
+        mUserDogsReference = FirebaseDatabase.getInstance()
                 .getReference()
                 .child("Users")
                 .child(userID)
@@ -264,7 +271,7 @@ public class ProfileFragment extends Fragment {
         RecyclerView myDogList = v.findViewById(R.id.myDogList);
         myDogList.setLayoutManager(new LinearLayoutManager(requireContext()));
         FirebaseRecyclerOptions<String> options = new FirebaseRecyclerOptions.Builder<String>()
-                .setQuery(ref, String.class)
+                .setQuery(mUserDogsReference, String.class)
                 .build();
         myDogAdapter = new MyDogAdapter(options, requireContext(), requireActivity(), isUser, lat, lng);
         myDogList.setAdapter(myDogAdapter);
@@ -340,7 +347,7 @@ public class ProfileFragment extends Fragment {
                 newUsernameLayout.setError(null);
                 editUsernameError.setVisibility(View.GONE);
                 spinner.setVisibility(View.VISIBLE);
-                FirebaseDatabase.getInstance().getReference("Users").addListenerForSingleValueEvent(new ValueEventListener() {
+                mUsersListener = new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
@@ -373,7 +380,8 @@ public class ProfileFragment extends Fragment {
                     public void onCancelled(@NonNull DatabaseError error) {
                         spinner.setVisibility(View.INVISIBLE);
                     }
-                });
+                };
+                mUsersReference.addListenerForSingleValueEvent(mUsersListener);
             });
         });
         usernameBuilder.show();
@@ -411,7 +419,7 @@ public class ProfileFragment extends Fragment {
                 }
 
                 spinner.setVisibility(View.VISIBLE);
-                FirebaseDatabase.getInstance().getReference("Users").addListenerForSingleValueEvent(new ValueEventListener() {
+                mUsersListener = new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
@@ -422,7 +430,7 @@ public class ProfileFragment extends Fragment {
                                 return;
                             }
                         }
-                        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("Users").child(currentUser.getUid());
+                        DatabaseReference userRef = mUsersReference.child(currentUser.getUid());
                         Map<String, Object> userUpdates = new HashMap<>();
                         userUpdates.put("phone", newPhoneInput.getText().toString().trim());
                         userRef.updateChildren(userUpdates, (error, ref) -> {
@@ -445,7 +453,8 @@ public class ProfileFragment extends Fragment {
                     public void onCancelled(@NonNull DatabaseError error) {
                         spinner.setVisibility(View.GONE);
                     }
-                });
+                };
+                mUsersReference.addListenerForSingleValueEvent(mUsersListener);
             });
         });
 
@@ -524,4 +533,15 @@ public class ProfileFragment extends Fragment {
         getParentFragmentManager().setFragmentResult("flipResult", flipBundle);
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        myDogAdapter.cleanupListeners();
+        if (mUsersListener != null)
+            mUsersReference.removeEventListener(mUsersListener);
+        if (mUserListener != null)
+            mUserReference.removeEventListener(mUserListener);
+        if (mCurrentUserListener != null)
+            mCurrentUserReference.removeEventListener(mCurrentUserListener);
+    }
 }

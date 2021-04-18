@@ -20,6 +20,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
@@ -36,6 +37,8 @@ public class RegisterFragment extends Fragment {
     private TextInputLayout usernameLayout, emailLayout, phoneLayout, passwordLayout, confirmPasswordLayout;
     private FirebaseAuth mAuth;
     private Button signUpButton;
+    private final DatabaseReference mUsersReference = FirebaseDatabase.getInstance().getReference("Users");
+    private ValueEventListener mUsersListener;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -106,8 +109,7 @@ public class RegisterFragment extends Fragment {
     }
 
     public void createUser(String usernameValue, String emailValue, String phoneValue, String passwordValue) {
-
-        FirebaseDatabase.getInstance().getReference("Users").addListenerForSingleValueEvent(new ValueEventListener() {
+        mUsersListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
@@ -129,8 +131,7 @@ public class RegisterFragment extends Fragment {
                         .addOnCompleteListener(task -> {
                             if (task.isSuccessful()) {
                                 User user = new User(usernameValue, emailValue, phoneValue, "https://firebasestorage.googleapis.com/v0/b/dogadoption-94cad.appspot.com/o/images%2Fdefault_profile_picture.png?alt=media&token=8c2794b6-2f3a-40fd-9b0c-9964a212bcf4");
-                                FirebaseDatabase.getInstance()
-                                        .getReference("Users")
+                                mUsersReference
                                         .child(mAuth.getCurrentUser().getUid())
                                         .setValue(user)
                                         .addOnSuccessListener(aVoid -> mAuth.getCurrentUser().sendEmailVerification()
@@ -178,7 +179,8 @@ public class RegisterFragment extends Fragment {
                 errorView.setVisibility(View.VISIBLE);
                 signUpButton.setEnabled(true);
             }
-        });
+        };
+        mUsersReference.addListenerForSingleValueEvent(mUsersListener);
     }
 
     private boolean formValid(TextInputLayout usernameLayout,
@@ -231,5 +233,12 @@ public class RegisterFragment extends Fragment {
         if (fragmentName.equals("ToProfile"))
             flipBundle.putString("userID", userID);
         getParentFragmentManager().setFragmentResult("flipResult", flipBundle);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (mUsersListener != null)
+            mUsersReference.removeEventListener(mUsersListener);
     }
 }

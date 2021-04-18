@@ -31,6 +31,7 @@ import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
@@ -66,6 +67,8 @@ public class EditDogFragment extends Fragment {
     private LinearLayout submitCancelLayout;
     private MaterialSpinner raceLayout;
     private MapFragment mapFragment;
+    private DatabaseReference mUserDogsReference;
+    private ValueEventListener mUserDogsListener;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -98,6 +101,10 @@ public class EditDogFragment extends Fragment {
         FirebaseStorage storage = FirebaseStorage.getInstance();
         storageReference = storage.getReference();
         mAuth = FirebaseAuth.getInstance();
+        mUserDogsReference = FirebaseDatabase.getInstance()
+                .getReference("Users")
+                .child(mAuth.getCurrentUser().getUid())
+                .child("dogs");
     }
 
     @Override
@@ -254,57 +261,53 @@ public class EditDogFragment extends Fragment {
     }
 
     private void editDog(String imageUrl) {
-
-        FirebaseDatabase.getInstance()
-                .getReference("Users")
-                .child(mAuth.getCurrentUser().getUid())
-                .child("dogs")
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                            String dogID = dataSnapshot.getValue(String.class);
-                            if (dogID != null) {
-                                if (dogID.equals(dogId)) {
-                                    Map<String, Object> dogUpdates = new HashMap<>();
-                                    dogUpdates.put("description", descriptionValue);
-                                    dogUpdates.put("gender", genderValue);
-                                    dogUpdates.put("name", nameValue.substring(0, 1).toUpperCase() + nameValue.substring(1));
-                                    dogUpdates.put("race", raceValue);
-                                    dogUpdates.put("age", ageValue);
-                                    dogUpdates.put("lat", latValue);
-                                    dogUpdates.put("lng", lngValue);
-                                    dogUpdates.put("image", imageUrl);
-                                    dogUpdates.put("ready", readyValue);
-                                    FirebaseDatabase.getInstance()
-                                            .getReference("Dogs")
-                                            .child(dogId)
-                                            .updateChildren(dogUpdates, (error1, ref1) -> {
-                                                if (error1 != null) {
-                                                    spinner.setVisibility(View.INVISIBLE);
-                                                    submitCancelLayout.setVisibility(View.VISIBLE);
-                                                    submitButton.setEnabled(true);
-                                                    Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), error1.getMessage(), Snackbar.LENGTH_LONG)
-                                                            .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
-                                                            .show();
-                                                } else {
-                                                    Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), "Dog updated successfully!", Snackbar.LENGTH_LONG)
-                                                            .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
-                                                            .show();
-                                                    switchTo();
-                                                }
-                                            });
-                                    break;
-                                }
-                            }
+        mUserDogsListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                    String dogID = dataSnapshot.getValue(String.class);
+                    if (dogID != null) {
+                        if (dogID.equals(dogId)) {
+                            Map<String, Object> dogUpdates = new HashMap<>();
+                            dogUpdates.put("description", descriptionValue);
+                            dogUpdates.put("gender", genderValue);
+                            dogUpdates.put("name", nameValue.substring(0, 1).toUpperCase() + nameValue.substring(1));
+                            dogUpdates.put("race", raceValue);
+                            dogUpdates.put("age", ageValue);
+                            dogUpdates.put("lat", latValue);
+                            dogUpdates.put("lng", lngValue);
+                            dogUpdates.put("image", imageUrl);
+                            dogUpdates.put("ready", readyValue);
+                            FirebaseDatabase.getInstance()
+                                    .getReference("Dogs")
+                                    .child(dogId)
+                                    .updateChildren(dogUpdates, (error1, ref1) -> {
+                                        if (error1 != null) {
+                                            spinner.setVisibility(View.INVISIBLE);
+                                            submitCancelLayout.setVisibility(View.VISIBLE);
+                                            submitButton.setEnabled(true);
+                                            Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), error1.getMessage(), Snackbar.LENGTH_LONG)
+                                                    .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
+                                                    .show();
+                                        } else {
+                                            Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), "Dog updated successfully!", Snackbar.LENGTH_LONG)
+                                                    .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
+                                                    .show();
+                                            switchTo();
+                                        }
+                                    });
+                            break;
                         }
                     }
+                }
+            }
 
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
 
-                    }
-                });
+            }
+        };
+        mUserDogsReference.addListenerForSingleValueEvent(mUserDogsListener);
     }
 
     private void switchTo() {
@@ -336,5 +339,12 @@ public class EditDogFragment extends Fragment {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (mUserDogsListener != null)
+            mUserDogsReference.removeEventListener(mUserDogsListener);
     }
 }

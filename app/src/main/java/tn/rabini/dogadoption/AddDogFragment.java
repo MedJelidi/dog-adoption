@@ -32,6 +32,7 @@ import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
@@ -69,6 +70,8 @@ public class AddDogFragment extends Fragment {
     private LinearLayout submitCancelLayout;
     private MaterialSpinner raceLayout;
     private MapFragment mapFragment;
+    private ValueEventListener mUserListener;
+    private DatabaseReference mUserReference;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -220,38 +223,41 @@ public class AddDogFragment extends Fragment {
                                     .setValue(dog)
                                     .addOnCompleteListener(task -> {
                                         if (task.isSuccessful()) {
-                                            FirebaseDatabase.getInstance()
+                                            mUserReference = FirebaseDatabase.getInstance()
                                                     .getReference("Users")
-                                                    .child(mAuth.getCurrentUser().getUid())
-                                                    .addListenerForSingleValueEvent(new ValueEventListener() {
-                                                        @Override
-                                                        public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                                            User user = snapshot.getValue(User.class);
-                                                            if (user != null) {
-                                                                HashMap<String, String> dogs = new HashMap<>();
-                                                                if (user.getDogs() != null) {
-                                                                    dogs = user.getDogs();
-                                                                }
-                                                                dogs.put(UUID.randomUUID().toString(), dog.getId());
-                                                                FirebaseDatabase.getInstance()
-                                                                        .getReference("Users")
-                                                                        .child(mAuth.getCurrentUser().getUid())
-                                                                        .child("dogs")
-                                                                        .setValue(dogs);
-                                                            }
-                                                            spinner.setVisibility(View.INVISIBLE);
-                                                            Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), "Dog added successfully!", Snackbar.LENGTH_LONG)
-                                                                    .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
-                                                                    .show();
-                                                            switchTo();
-                                                        }
+                                                    .child(mAuth.getCurrentUser().getUid());
 
-                                                        @Override
-                                                        public void onCancelled(@NonNull DatabaseError error) {
-                                                            submitButton.setEnabled(true);
-                                                            submitCancelLayout.setVisibility(View.VISIBLE);
+                                            mUserListener = new ValueEventListener() {
+                                                @Override
+                                                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                                    User user = snapshot.getValue(User.class);
+                                                    if (user != null) {
+                                                        HashMap<String, String> dogs = new HashMap<>();
+                                                        if (user.getDogs() != null) {
+                                                            dogs = user.getDogs();
                                                         }
-                                                    });
+                                                        dogs.put(UUID.randomUUID().toString(), dog.getId());
+                                                        FirebaseDatabase.getInstance()
+                                                                .getReference("Users")
+                                                                .child(mAuth.getCurrentUser().getUid())
+                                                                .child("dogs")
+                                                                .setValue(dogs);
+                                                    }
+                                                    spinner.setVisibility(View.INVISIBLE);
+                                                    Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), "Dog added successfully!", Snackbar.LENGTH_LONG)
+                                                            .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
+                                                            .show();
+                                                    switchTo();
+                                                }
+
+                                                @Override
+                                                public void onCancelled(@NonNull DatabaseError error) {
+                                                    submitButton.setEnabled(true);
+                                                    submitCancelLayout.setVisibility(View.VISIBLE);
+                                                }
+                                            };
+                                            mUserReference.addListenerForSingleValueEvent(mUserListener);
+
                                         } else {
                                             submitButton.setEnabled(true);
                                             submitCancelLayout.setVisibility(View.VISIBLE);
@@ -308,5 +314,12 @@ public class AddDogFragment extends Fragment {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (mUserListener != null)
+            mUserReference.removeEventListener(mUserListener);
     }
 }

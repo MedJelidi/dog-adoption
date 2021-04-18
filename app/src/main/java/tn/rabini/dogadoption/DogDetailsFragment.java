@@ -70,6 +70,8 @@ public class DogDetailsFragment extends Fragment {
     private boolean ready;
     private CircularProgressIndicator spinner;
     private RelativeLayout allLayouts;
+    private DatabaseReference mUserReference, mLikedDogsReference, mCurrentUserReference;
+    private ValueEventListener mUserListener, mLikedDogsListener, mCurrentUserListener;
 
     public DogDetailsFragment() {
         // Required empty public constructor
@@ -90,6 +92,12 @@ public class DogDetailsFragment extends Fragment {
             ready = getArguments().getBoolean("ready");
             owner = getArguments().getString("owner");
             previousFragment = getArguments().getInt("previous_fragment");
+            mUserReference = FirebaseDatabase.getInstance().getReference("Users").child(owner);
+        }
+        mAuth = FirebaseAuth.getInstance();
+        if (mAuth.getCurrentUser() != null) {
+            mCurrentUserReference = FirebaseDatabase.getInstance().getReference("Users").child(mAuth.getCurrentUser().getUid());
+            mLikedDogsReference = mCurrentUserReference.child("likedDogs");
         }
     }
 
@@ -116,7 +124,6 @@ public class DogDetailsFragment extends Fragment {
         dogOwner = v.findViewById(R.id.dogOwner);
         dogContact = v.findViewById(R.id.dogContact);
         dogDescription.setMovementMethod(new ScrollingMovementMethod());
-        mAuth = FirebaseAuth.getInstance();
 
         arrowBack.setOnClickListener(view -> {
             switch (previousFragment) {
@@ -179,54 +186,53 @@ public class DogDetailsFragment extends Fragment {
         dogDescription.setText(description);
 
         // GET OWNER INFO
-        FirebaseDatabase.getInstance().getReference("Users").child(owner)
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        User user = snapshot.getValue(User.class);
-                        if (user != null) {
-                            if (mAuth.getCurrentUser() == null) {
-                                dogOwner.setText(getString(R.string.login_to_show));
-                                dogContact.setText(getString(R.string.login_to_show));
-                            } else if (!mAuth.getCurrentUser().isEmailVerified()) {
-                                dogOwner.setText(getString(R.string.verify_to_show));
-                                dogContact.setText(getString(R.string.verify_to_show));
-                            } else {
-                                dogOwner.setText(user.getUsername());
-                                dogContact.setText(user.getPhone());
-                            }
-                            contactNumber = user.getPhone();
-
-                            Glide.with(requireContext())
-                                    .load(image)
-                                    .listener(new RequestListener<Drawable>() {
-                                        @Override
-                                        public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
-                                            spinner.setVisibility(View.GONE);
-                                            allLayouts.setVisibility(View.VISIBLE);
-                                            return false;
-                                        }
-
-                                        @Override
-                                        public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
-                                            spinner.setVisibility(View.GONE);
-                                            allLayouts.setVisibility(View.VISIBLE);
-                                            return false;
-                                        }
-                                    })
-                                    .fitCenter()
-                                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-                                    .error(R.drawable.ic_baseline_error_24)
-                                    .into(dogImage);
-                        }
+        mUserListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                User user = snapshot.getValue(User.class);
+                if (user != null) {
+                    if (mAuth.getCurrentUser() == null) {
+                        dogOwner.setText(getString(R.string.login_to_show));
+                        dogContact.setText(getString(R.string.login_to_show));
+                    } else if (!mAuth.getCurrentUser().isEmailVerified()) {
+                        dogOwner.setText(getString(R.string.verify_to_show));
+                        dogContact.setText(getString(R.string.verify_to_show));
+                    } else {
+                        dogOwner.setText(user.getUsername());
+                        dogContact.setText(user.getPhone());
                     }
+                    contactNumber = user.getPhone();
 
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
+                    Glide.with(requireContext())
+                            .load(image)
+                            .listener(new RequestListener<Drawable>() {
+                                @Override
+                                public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                                    spinner.setVisibility(View.GONE);
+                                    allLayouts.setVisibility(View.VISIBLE);
+                                    return false;
+                                }
 
-                    }
-                });
+                                @Override
+                                public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                                    spinner.setVisibility(View.GONE);
+                                    allLayouts.setVisibility(View.VISIBLE);
+                                    return false;
+                                }
+                            })
+                            .fitCenter()
+                            .diskCacheStrategy(DiskCacheStrategy.ALL)
+                            .error(R.drawable.ic_baseline_error_24)
+                            .into(dogImage);
+                }
+            }
 
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        };
+        mUserReference.addListenerForSingleValueEvent(mUserListener);
 
         if (mAuth.getCurrentUser() != null && mAuth.getCurrentUser().isEmailVerified()) {
             dogOwner.setOnClickListener(view -> {
@@ -249,35 +255,31 @@ public class DogDetailsFragment extends Fragment {
             likeButton.setBackgroundResource(R.drawable.ic_baseline_favorite_border_24);
             likeButton.setVisibility(View.VISIBLE);
         } else {
-            FirebaseDatabase.getInstance()
-                    .getReference("Users")
-                    .child(mAuth.getCurrentUser().getUid())
-                    .child("likedDogs")
-                    .addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot snapshot) {
-                            for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                                String dogID = dataSnapshot.getValue(String.class);
-                                if (dogID != null) {
-                                    if (dogID.equals(id)) {
-                                        likeButton.setBackgroundResource
-                                                (R.drawable.ic_baseline_favorite_24);
-                                        likeButton.setVisibility(View.VISIBLE);
-                                        return;
-                                    }
-                                }
+            mLikedDogsListener = new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                        String dogID = dataSnapshot.getValue(String.class);
+                        if (dogID != null) {
+                            if (dogID.equals(id)) {
+                                likeButton.setBackgroundResource
+                                        (R.drawable.ic_baseline_favorite_24);
+                                likeButton.setVisibility(View.VISIBLE);
+                                return;
                             }
-                            likeButton.setBackgroundResource
-                                    (R.drawable.ic_baseline_favorite_border_24);
-                            likeButton.setVisibility(View.VISIBLE);
                         }
+                    }
+                    likeButton.setBackgroundResource
+                            (R.drawable.ic_baseline_favorite_border_24);
+                    likeButton.setVisibility(View.VISIBLE);
+                }
 
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError error) {
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
 
-                        }
-                    });
-
+                }
+            };
+            mLikedDogsReference.addListenerForSingleValueEvent(mLikedDogsListener);
         }
 
         // ON LIKE BUTTON CLICK
@@ -292,10 +294,7 @@ public class DogDetailsFragment extends Fragment {
             if (view.getBackground().getConstantState().equals(Objects.requireNonNull(ResourcesCompat
                     .getDrawable(getResources(), R.drawable.ic_baseline_favorite_border_24
                             , null)).getConstantState())) {
-                DatabaseReference userRef = FirebaseDatabase.getInstance()
-                        .getReference("Users")
-                        .child(mAuth.getCurrentUser().getUid());
-                userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                mCurrentUserListener = new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         User user = snapshot.getValue(User.class);
@@ -331,10 +330,9 @@ public class DogDetailsFragment extends Fragment {
                     public void onCancelled(@NonNull DatabaseError error) {
                         view.setEnabled(true);
                     }
-                });
+                };
             } else {
-                DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("Users").child(mAuth.getCurrentUser().getUid());
-                userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                mCurrentUserListener = new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         User user = snapshot.getValue(User.class);
@@ -378,8 +376,9 @@ public class DogDetailsFragment extends Fragment {
                     public void onCancelled(@NonNull DatabaseError error) {
                         view.setEnabled(true);
                     }
-                });
+                };
             }
+            mCurrentUserReference.addListenerForSingleValueEvent(mCurrentUserListener);
         });
 
         parentScroll.setOnTouchListener((view, motionEvent) -> {
@@ -403,5 +402,16 @@ public class DogDetailsFragment extends Fragment {
         if (fragmentName.equals("ToProfile"))
             flipBundle.putString("userID", owner);
         getParentFragmentManager().setFragmentResult("flipResult", flipBundle);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (mUserListener != null)
+            mUserReference.removeEventListener(mUserListener);
+        if (mLikedDogsListener != null)
+            mLikedDogsReference.removeEventListener(mLikedDogsListener);
+        if (mCurrentUserListener != null)
+            mCurrentUserReference.removeEventListener(mCurrentUserListener);
     }
 }

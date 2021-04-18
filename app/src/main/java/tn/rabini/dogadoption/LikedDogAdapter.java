@@ -41,6 +41,12 @@ public class LikedDogAdapter extends FirebaseRecyclerAdapter<String, LikedDogAda
     private final Context context;
     private final FragmentActivity activity;
     private final double lat, lng;
+    private final DatabaseReference mCurrentUserReference = FirebaseDatabase.getInstance()
+            .getReference("Users")
+            .child(FirebaseAuth.getInstance().getCurrentUser().getUid()),
+            mLikedDogsReference = mCurrentUserReference.child("likedDogs");
+    private ValueEventListener mLikedDogsListener, mDogListener, mCurrentUserListener;
+    private DatabaseReference mDogReference;
 
     public LikedDogAdapter(@NonNull FirebaseRecyclerOptions<String> options, Context context, FragmentActivity activity, double lat, double lng) {
         super(options);
@@ -53,80 +59,78 @@ public class LikedDogAdapter extends FirebaseRecyclerAdapter<String, LikedDogAda
     @Override
     protected void onBindViewHolder(@NonNull LikedDogAdapter.LikedDogViewHolder holder, int position, @NonNull String model) {
 
-        FirebaseDatabase.getInstance()
+        mDogReference = FirebaseDatabase.getInstance()
                 .getReference("Dogs")
-                .child(model)
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        Dog dog = snapshot.getValue(Dog.class);
-                        if (dog != null) {
-                            CircularProgressDrawable circularProgressDrawable = new CircularProgressDrawable(context);
-                            circularProgressDrawable.setStrokeWidth(5f);
-                            circularProgressDrawable.setCenterRadius(30f);
-                            circularProgressDrawable.start();
+                .child(model);
+        mDogListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                Dog dog = snapshot.getValue(Dog.class);
+                if (dog != null) {
+                    CircularProgressDrawable circularProgressDrawable = new CircularProgressDrawable(context);
+                    circularProgressDrawable.setStrokeWidth(5f);
+                    circularProgressDrawable.setCenterRadius(30f);
+                    circularProgressDrawable.start();
 
-                            Glide.with(context)
-                                    .load(dog.getImage())
-                                    .fitCenter()
-                                    .placeholder(circularProgressDrawable)
-                                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-                                    .error(R.drawable.ic_baseline_error_24)
-                                    .into(holder.dogImage);
+                    Glide.with(context)
+                            .load(dog.getImage())
+                            .fitCenter()
+                            .circleCrop()
+                            .placeholder(circularProgressDrawable)
+                            .diskCacheStrategy(DiskCacheStrategy.ALL)
+                            .error(R.drawable.ic_baseline_error_24)
+                            .into(holder.dogImage);
 
-                            holder.dogName.setText(dog.getName());
-                            LatLng loc1 = new LatLng(lat, lng);
-                            LatLng loc2 = new LatLng(Double.parseDouble(dog.getLat()), Double.parseDouble(dog.getLng()));
-                            double distance = SphericalUtil.computeDistanceBetween(loc1, loc2);
-                            holder.itemView.setOnClickListener(view -> {
-                                Bundle flipBundle = new Bundle();
-                                flipBundle.putString("flip", "ToDogDetails");
-                                flipBundle.putInt("previous_fragment", 1);
-                                flipBundle.putString("id", dog.getId());
-                                flipBundle.putString("image", dog.getImage());
-                                flipBundle.putString("name", dog.getName());
-                                flipBundle.putString("race", dog.getRace());
-                                flipBundle.putString("age", dog.getAge());
-                                flipBundle.putString("gender", dog.getGender());
-                                flipBundle.putString("description", dog.getDescription());
-                                flipBundle.putBoolean("ready", dog.isReady());
-                                flipBundle.putString("distance", String.format(Locale.CANADA, "%.2f", distance / 1000)+"km away");
-                                flipBundle.putString("owner", dog.getOwner());
-                                ((AppCompatActivity) context).getSupportFragmentManager().setFragmentResult("flipResult", flipBundle);
-                            });
-                        } else {
-                            FirebaseDatabase.getInstance()
-                                    .getReference("Users")
-                                    .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
-                                    .child("likedDogs")
-                                    .addListenerForSingleValueEvent(new ValueEventListener() {
-                                        @Override
-                                        public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                            for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                                                if (dataSnapshot.getValue(String.class).equals(model)) {
-                                                    dataSnapshot.getRef().removeValue();
-                                                    return;
-                                                }
-                                            }
-                                        }
-
-                                        @Override
-                                        public void onCancelled(@NonNull DatabaseError error) {
-
-                                        }
-                                    });
+                    holder.dogName.setText(dog.getName());
+                    LatLng loc1 = new LatLng(lat, lng);
+                    LatLng loc2 = new LatLng(Double.parseDouble(dog.getLat()), Double.parseDouble(dog.getLng()));
+                    double distance = SphericalUtil.computeDistanceBetween(loc1, loc2);
+                    holder.itemView.setOnClickListener(view -> {
+                        Bundle flipBundle = new Bundle();
+                        flipBundle.putString("flip", "ToDogDetails");
+                        flipBundle.putInt("previous_fragment", 1);
+                        flipBundle.putString("id", dog.getId());
+                        flipBundle.putString("image", dog.getImage());
+                        flipBundle.putString("name", dog.getName());
+                        flipBundle.putString("race", dog.getRace());
+                        flipBundle.putString("age", dog.getAge());
+                        flipBundle.putString("gender", dog.getGender());
+                        flipBundle.putString("description", dog.getDescription());
+                        flipBundle.putBoolean("ready", dog.isReady());
+                        flipBundle.putString("distance", String.format(Locale.CANADA, "%.2f", distance / 1000) + "km away");
+                        flipBundle.putString("owner", dog.getOwner());
+                        ((AppCompatActivity) context).getSupportFragmentManager().setFragmentResult("flipResult", flipBundle);
+                    });
+                } else {
+                    mLikedDogsListener = new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                                if (dataSnapshot.getValue(String.class).equals(model)) {
+                                    dataSnapshot.getRef().removeValue();
+                                    return;
+                                }
+                            }
                         }
-                    }
 
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
 
-                    }
-                });
+                        }
+                    };
+                    mLikedDogsReference.addListenerForSingleValueEvent(mLikedDogsListener);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        };
+        mDogReference.addListenerForSingleValueEvent(mDogListener);
 
         holder.unlikeButton.setOnClickListener(view -> {
-            DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("Users").child(FirebaseAuth.getInstance().getCurrentUser().getUid());
-            userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            mCurrentUserListener = new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                     User user = snapshot.getValue(User.class);
@@ -134,7 +138,7 @@ public class LikedDogAdapter extends FirebaseRecyclerAdapter<String, LikedDogAda
                         HashMap<String, String> likedDogs;
                         if (user.getLikedDogs() != null) {
                             likedDogs = user.getLikedDogs();
-                            for (String k: likedDogs.keySet()) {
+                            for (String k : likedDogs.keySet()) {
                                 String dogID = likedDogs.get(k);
                                 if (dogID != null) {
                                     if (dogID.equals(model)) {
@@ -168,7 +172,8 @@ public class LikedDogAdapter extends FirebaseRecyclerAdapter<String, LikedDogAda
                 public void onCancelled(@NonNull DatabaseError error) {
 
                 }
-            });
+            };
+            mCurrentUserReference.addListenerForSingleValueEvent(mCurrentUserListener);
         });
 
     }
@@ -192,5 +197,14 @@ public class LikedDogAdapter extends FirebaseRecyclerAdapter<String, LikedDogAda
             dogName = itemView.findViewById(R.id.dogName);
             unlikeButton = itemView.findViewById(R.id.unlikeButton);
         }
+    }
+
+    public void cleanupListeners() {
+        if (mCurrentUserListener != null)
+            mCurrentUserReference.removeEventListener(mCurrentUserListener);
+        if (mDogListener != null)
+            mDogReference.removeEventListener(mDogListener);
+        if (mLikedDogsListener != null)
+            mLikedDogsReference.removeEventListener(mLikedDogsListener);
     }
 }

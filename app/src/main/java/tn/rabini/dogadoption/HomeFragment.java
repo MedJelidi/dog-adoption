@@ -41,9 +41,9 @@ import tn.rabini.dogadoption.models.Dog;
 
 public class HomeFragment extends Fragment {
 
-    private final DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Dogs");
+    private final DatabaseReference mDogsReference = FirebaseDatabase.getInstance().getReference().child("Dogs");
     private final FirebaseRecyclerOptions<Dog> adapterOptions = new FirebaseRecyclerOptions.Builder<Dog>()
-            .setQuery(ref, Dog.class)
+            .setQuery(mDogsReference, Dog.class)
             .build();
     private RecyclerView dogList;
     private DogAdapter dogAdapter;
@@ -67,6 +67,7 @@ public class HomeFragment extends Fragment {
             }
         }
     };
+    private ValueEventListener mDogsListener;
 
     public HomeFragment() {
         // Required empty public constructor
@@ -170,7 +171,7 @@ public class HomeFragment extends Fragment {
         if (optionSelected.equals("distance")) {
             if (!optionSelected.equals(currentOption)) {
                 if (!distanceAdded) {
-                    ref.addListenerForSingleValueEvent(new ValueEventListener() {
+                    mDogsListener = new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot snapshot) {
                             for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
@@ -181,8 +182,8 @@ public class HomeFragment extends Fragment {
                                     double distance = SphericalUtil.computeDistanceBetween(loc1, loc2);
                                     Map<String, Object> dogUpdates = new HashMap<>();
                                     dogUpdates.put("distance", Math.round((distance / 1000) * Math.pow(10, 2)) / Math.pow(10, 2));
-                                    ref.child(dog.getId()).updateChildren(dogUpdates).addOnSuccessListener(aVoid -> {
-                                        Query newRef = ref.orderByChild("distance");
+                                    mDogsReference.child(dog.getId()).updateChildren(dogUpdates).addOnSuccessListener(aVoid -> {
+                                        Query newRef = mDogsReference.orderByChild("distance");
                                         FirebaseRecyclerOptions<Dog> newOptions = new FirebaseRecyclerOptions.Builder<Dog>()
                                                 .setQuery(newRef, Dog.class)
                                                 .build();
@@ -199,9 +200,10 @@ public class HomeFragment extends Fragment {
                         public void onCancelled(@NonNull DatabaseError error) {
 
                         }
-                    });
+                    };
+                    mDogsReference.addListenerForSingleValueEvent(mDogsListener);
                 } else {
-                    Query newRef = ref.orderByChild("distance");
+                    Query newRef = mDogsReference.orderByChild("distance");
                     FirebaseRecyclerOptions<Dog> newOptions = new FirebaseRecyclerOptions.Builder<Dog>()
                             .setQuery(newRef, Dog.class)
                             .build();
@@ -211,7 +213,7 @@ public class HomeFragment extends Fragment {
             }
         } else {
             if (!optionSelected.equals(currentOption) || typing) {
-                Query newRef = ref.orderByChild(optionSelected)
+                Query newRef = mDogsReference.orderByChild(optionSelected)
                         .startAt(capitalize(searchQuery)).endAt(capitalize(searchQuery) + "\uf8ff");
                 FirebaseRecyclerOptions<Dog> newOptions = new FirebaseRecyclerOptions.Builder<Dog>()
                         .setQuery(newRef, Dog.class)
@@ -238,5 +240,12 @@ public class HomeFragment extends Fragment {
         Bundle flipBundle = new Bundle();
         flipBundle.putString("flip", fragmentName);
         getParentFragmentManager().setFragmentResult("flipResult", flipBundle);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (mDogsListener != null)
+            mDogsReference.removeEventListener(mDogsListener);
     }
 }
