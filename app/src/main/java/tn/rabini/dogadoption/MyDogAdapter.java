@@ -14,13 +14,8 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.swiperefreshlayout.widget.CircularProgressDrawable;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
-import com.google.android.gms.maps.model.LatLng;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
@@ -31,14 +26,12 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
-import com.google.maps.android.SphericalUtil;
 
-import java.util.Locale;
 import java.util.Objects;
 
 import tn.rabini.dogadoption.models.Dog;
 
-public class MyDogAdapter extends FirebaseRecyclerAdapter<String, MyDogAdapter.MyDogViewHolder> {
+public class MyDogAdapter extends BaseAdapter<String, MyDogAdapter.MyDogViewHolder> {
 
     private final Context context;
     private final FragmentActivity activity;
@@ -66,41 +59,10 @@ public class MyDogAdapter extends FirebaseRecyclerAdapter<String, MyDogAdapter.M
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 Dog dog = snapshot.getValue(Dog.class);
                 if (dog != null) {
-                    CircularProgressDrawable circularProgressDrawable = new CircularProgressDrawable(context);
-                    circularProgressDrawable.setStrokeWidth(5f);
-                    circularProgressDrawable.setCenterRadius(30f);
-                    circularProgressDrawable.start();
-                    Glide.with(context)
-                            .load(dog.getImage())
-                            .fitCenter()
-                            .circleCrop()
-                            .diskCacheStrategy(DiskCacheStrategy.ALL)
-                            .placeholder(circularProgressDrawable)
-                            .error(R.drawable.ic_baseline_error_24)
-                            .into(holder.dogImage);
-
+                    glideHandle(context, dog.getImage(), holder.dogImage);
+                    double distance = getDistance(lat, lng, Double.parseDouble(dog.getLat()), Double.parseDouble(dog.getLng()));
+                    holder.itemView.setOnClickListener(view -> switchToDetails(context, dog, distance, 2));
                     holder.dogName.setText(dog.getName());
-
-                    LatLng loc1 = new LatLng(lat, lng);
-                    LatLng loc2 = new LatLng(Double.parseDouble(dog.getLat()), Double.parseDouble(dog.getLng()));
-                    double distance = SphericalUtil.computeDistanceBetween(loc1, loc2);
-                    holder.itemView.setOnClickListener(view -> {
-                        Bundle flipBundle = new Bundle();
-                        flipBundle.putString("flip", "ToDogDetails");
-                        flipBundle.putInt("previous_fragment", 2);
-                        flipBundle.putString("id", dog.getId());
-                        flipBundle.putString("image", dog.getImage());
-                        flipBundle.putString("name", dog.getName());
-                        flipBundle.putString("race", dog.getRace());
-                        flipBundle.putString("age", dog.getAge());
-                        flipBundle.putString("gender", dog.getGender());
-                        flipBundle.putString("description", dog.getDescription());
-                        flipBundle.putBoolean("ready", dog.isReady());
-                        flipBundle.putString("distance", String.format(Locale.CANADA, "%.2f", distance / 1000) + "km away");
-                        flipBundle.putString("owner", dog.getOwner());
-                        ((AppCompatActivity) context).getSupportFragmentManager().setFragmentResult("flipResult", flipBundle);
-                    });
-
                     if (isUser) {
                         holder.editButton.setVisibility(View.VISIBLE);
                         holder.deleteButton.setVisibility(View.VISIBLE);

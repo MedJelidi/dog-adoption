@@ -1,7 +1,6 @@
 package tn.rabini.dogadoption;
 
 import android.content.Context;
-import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,16 +9,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.swiperefreshlayout.widget.CircularProgressDrawable;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
-import com.google.android.gms.maps.model.LatLng;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -27,16 +20,14 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.maps.android.SphericalUtil;
 
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 
 import tn.rabini.dogadoption.models.Dog;
 import tn.rabini.dogadoption.models.User;
 
-public class LikedDogAdapter extends FirebaseRecyclerAdapter<String, LikedDogAdapter.LikedDogViewHolder> {
+public class LikedDogAdapter extends BaseAdapter<String, LikedDogAdapter.LikedDogViewHolder> {
 
     private final Context context;
     private final FragmentActivity activity;
@@ -67,40 +58,10 @@ public class LikedDogAdapter extends FirebaseRecyclerAdapter<String, LikedDogAda
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 Dog dog = snapshot.getValue(Dog.class);
                 if (dog != null) {
-                    CircularProgressDrawable circularProgressDrawable = new CircularProgressDrawable(context);
-                    circularProgressDrawable.setStrokeWidth(5f);
-                    circularProgressDrawable.setCenterRadius(30f);
-                    circularProgressDrawable.start();
-
-                    Glide.with(context)
-                            .load(dog.getImage())
-                            .fitCenter()
-                            .circleCrop()
-                            .placeholder(circularProgressDrawable)
-                            .diskCacheStrategy(DiskCacheStrategy.ALL)
-                            .error(R.drawable.ic_baseline_error_24)
-                            .into(holder.dogImage);
-
+                    glideHandle(context, dog.getImage(), holder.dogImage);
+                    double distance = getDistance(lat, lng, Double.parseDouble(dog.getLat()), Double.parseDouble(dog.getLng()));
                     holder.dogName.setText(dog.getName());
-                    LatLng loc1 = new LatLng(lat, lng);
-                    LatLng loc2 = new LatLng(Double.parseDouble(dog.getLat()), Double.parseDouble(dog.getLng()));
-                    double distance = SphericalUtil.computeDistanceBetween(loc1, loc2);
-                    holder.itemView.setOnClickListener(view -> {
-                        Bundle flipBundle = new Bundle();
-                        flipBundle.putString("flip", "ToDogDetails");
-                        flipBundle.putInt("previous_fragment", 1);
-                        flipBundle.putString("id", dog.getId());
-                        flipBundle.putString("image", dog.getImage());
-                        flipBundle.putString("name", dog.getName());
-                        flipBundle.putString("race", dog.getRace());
-                        flipBundle.putString("age", dog.getAge());
-                        flipBundle.putString("gender", dog.getGender());
-                        flipBundle.putString("description", dog.getDescription());
-                        flipBundle.putBoolean("ready", dog.isReady());
-                        flipBundle.putString("distance", String.format(Locale.CANADA, "%.2f", distance / 1000) + "km away");
-                        flipBundle.putString("owner", dog.getOwner());
-                        ((AppCompatActivity) context).getSupportFragmentManager().setFragmentResult("flipResult", flipBundle);
-                    });
+                    holder.itemView.setOnClickListener(view -> switchToDetails(context, dog, distance, 1));
                 } else {
                     mLikedDogsListener = new ValueEventListener() {
                         @Override
@@ -185,6 +146,15 @@ public class LikedDogAdapter extends FirebaseRecyclerAdapter<String, LikedDogAda
         return new LikedDogAdapter.LikedDogViewHolder(v);
     }
 
+    public void cleanupListeners() {
+        if (mCurrentUserListener != null)
+            mCurrentUserReference.removeEventListener(mCurrentUserListener);
+        if (mDogListener != null)
+            mDogReference.removeEventListener(mDogListener);
+        if (mLikedDogsListener != null)
+            mLikedDogsReference.removeEventListener(mLikedDogsListener);
+    }
+
     public static class LikedDogViewHolder extends RecyclerView.ViewHolder {
 
         ImageView dogImage;
@@ -197,14 +167,5 @@ public class LikedDogAdapter extends FirebaseRecyclerAdapter<String, LikedDogAda
             dogName = itemView.findViewById(R.id.dogName);
             unlikeButton = itemView.findViewById(R.id.unlikeButton);
         }
-    }
-
-    public void cleanupListeners() {
-        if (mCurrentUserListener != null)
-            mCurrentUserReference.removeEventListener(mCurrentUserListener);
-        if (mDogListener != null)
-            mDogReference.removeEventListener(mDogListener);
-        if (mLikedDogsListener != null)
-            mLikedDogsReference.removeEventListener(mLikedDogsListener);
     }
 }

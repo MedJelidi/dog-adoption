@@ -106,8 +106,6 @@ public class MainActivity extends AppCompatActivity {
                     lat = location.getLatitude();
                     lng = location.getLongitude();
                     locationManager.removeUpdates(locationListener);
-                    MyLocation.myLat = lat;
-                    MyLocation.myLng = lng;
                     Intent intent = new Intent("my-cord");
                     intent.putExtra("lat", lat);
                     intent.putExtra("lng", lng);

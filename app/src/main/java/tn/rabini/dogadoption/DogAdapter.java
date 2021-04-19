@@ -1,7 +1,6 @@
 package tn.rabini.dogadoption;
 
 import android.content.Context;
-import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,22 +8,15 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.swiperefreshlayout.widget.CircularProgressDrawable;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.maps.android.SphericalUtil;
 
 import java.util.Locale;
 
 import tn.rabini.dogadoption.models.Dog;
 
-public class DogAdapter extends FirebaseRecyclerAdapter<Dog, DogAdapter.DogViewHolder> {
+public class DogAdapter extends BaseAdapter<Dog, DogAdapter.DogViewHolder> {
 
     private final Context context;
     private final double lat, lng;
@@ -38,40 +30,12 @@ public class DogAdapter extends FirebaseRecyclerAdapter<Dog, DogAdapter.DogViewH
 
     @Override
     protected void onBindViewHolder(@NonNull DogAdapter.DogViewHolder holder, int position, @NonNull Dog model) {
-        CircularProgressDrawable circularProgressDrawable = new CircularProgressDrawable(context);
-        circularProgressDrawable.setStrokeWidth(5f);
-        circularProgressDrawable.setCenterRadius(30f);
-        circularProgressDrawable.start();
-        Glide.with(context)
-                .load(model.getImage())
-                .fitCenter()
-                .circleCrop()
-                .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .placeholder(circularProgressDrawable)
-                .error(R.drawable.ic_baseline_error_24)
-                .into(holder.dogImage);
-        LatLng loc1 = new LatLng(lat, lng);
-        LatLng loc2 = new LatLng(Double.parseDouble(model.getLat()), Double.parseDouble(model.getLng()));
-        double distance = SphericalUtil.computeDistanceBetween(loc1, loc2);
-        holder.itemView.setOnClickListener(view -> {
-                            Bundle flipBundle = new Bundle();
-                            flipBundle.putString("flip", "ToDogDetails");
-                            flipBundle.putInt("previous_fragment", 0);
-                            flipBundle.putString("id", model.getId());
-                            flipBundle.putString("image", model.getImage());
-                            flipBundle.putString("name", model.getName());
-                            flipBundle.putString("race", model.getRace());
-                            flipBundle.putString("age", model.getAge());
-                            flipBundle.putString("gender", model.getGender());
-                            flipBundle.putString("description", model.getDescription());
-                            flipBundle.putString("distance", String.format(Locale.CANADA, "%.2f", distance / 1000)+"km away");
-                            flipBundle.putBoolean("ready", model.isReady());
-                            flipBundle.putString("owner", model.getOwner());
-                            ((AppCompatActivity) context).getSupportFragmentManager().setFragmentResult("flipResult", flipBundle);
-                        });
-                        holder.dogRace.setText(model.getRace());
-                        holder.dogName.setText(model.getName());
-                        holder.dogLocation.setText(String.format(Locale.CANADA, "%.2f", distance / 1000)+"km away");
+        glideHandle(context, model.getImage(), holder.dogImage);
+        double distance = getDistance(lat, lng, Double.parseDouble(model.getLat()), Double.parseDouble(model.getLng()));
+        holder.itemView.setOnClickListener(view -> switchToDetails(context, model, distance, 0));
+        holder.dogRace.setText(model.getRace());
+        holder.dogName.setText(model.getName());
+        holder.dogLocation.setText(context.getString(R.string.distance, String.format(Locale.CANADA, "%.2f", distance / 1000)));
     }
 
     @NonNull

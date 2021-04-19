@@ -52,20 +52,10 @@ import tn.rabini.dogadoption.models.User;
 
 public class DogDetailsFragment extends Fragment {
 
-    private String id;
-    private String name;
-    private String race;
-    private String age;
-    private String gender;
-    private String description;
-    private String distance;
-    private String image;
-    private String owner;
-    private String contactNumber;
+    private String id, name, race, age, gender, description, distance, image, owner, contactNumber;
     private int previousFragment;
     private ToggleButton likeButton;
-    private TextView dogOwner;
-    private TextView dogContact;
+    private TextView dogOwner, dogContact;
     private FirebaseAuth mAuth;
     private boolean ready;
     private CircularProgressIndicator spinner;
