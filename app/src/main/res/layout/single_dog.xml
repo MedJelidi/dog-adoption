@@ -14,8 +14,8 @@
             android:id="@+id/dogImage"
             android:layout_width="100dp"
             android:layout_height="100dp"
-            android:padding="10dp"
-            android:contentDescription="@string/dog_picture" />
+            android:contentDescription="@string/dog_picture"
+            android:padding="10dp" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -44,12 +44,29 @@
                 android:textColor="@color/black"
                 android:textSize="18sp" />
 
-            <TextView
-                android:id="@+id/dogLocation"
+            <RelativeLayout
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:fontFamily="@font/roboto_light" />
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/dogLocation"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:fontFamily="@font/roboto_light" />
+
+                <TextView
+                    android:id="@+id/dogPublished"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_alignParentRight="true"
+                    android:layout_marginTop="10dp"
+                    android:fontFamily="@font/roboto_light"
+                    android:textColor="@color/design_default_color_primary"
+                    android:textStyle="italic" />
+
+            </RelativeLayout>
 
         </LinearLayout>
 

@@ -52,7 +52,8 @@ import tn.rabini.dogadoption.models.User;
 
 public class DogDetailsFragment extends Fragment {
 
-    private String id, name, race, age, gender, description, distance, image, owner, contactNumber;
+    private String id, name, race, age, gender, description, distance, image, owner, contactNumber
+            , publishedDate;
     private int previousFragment;
     private ToggleButton likeButton;
     private TextView dogOwner, dogContact;
@@ -81,6 +82,7 @@ public class DogDetailsFragment extends Fragment {
             image = getArguments().getString("image");
             ready = getArguments().getBoolean("ready");
             owner = getArguments().getString("owner");
+            publishedDate = getArguments().getString("published_at");
             previousFragment = getArguments().getInt("previous_fragment");
             mUserReference = FirebaseDatabase.getInstance().getReference("Users").child(owner);
         }
@@ -111,6 +113,7 @@ public class DogDetailsFragment extends Fragment {
         TextView dogDescription = v.findViewById(R.id.dogDescription);
         TextView dogLocation = v.findViewById(R.id.dogLocation);
         TextView dogReady = v.findViewById(R.id.dogReady);
+        TextView publishedAt = v.findViewById(R.id.publishedAt);
         dogOwner = v.findViewById(R.id.dogOwner);
         dogContact = v.findViewById(R.id.dogContact);
         dogDescription.setMovementMethod(new ScrollingMovementMethod());
@@ -155,6 +158,7 @@ public class DogDetailsFragment extends Fragment {
         dogRace.setText(race);
         dogLocation.setText(distance);
         dogReady.setText(ready ? "Available" : "Not available at the moment");
+        publishedAt.setText(getString(R.string.published_at, publishedDate));
 
         // SET AVAILABLE OR NOT IMAGE
         dogReady.setCompoundDrawablesWithIntrinsicBounds(ready ? ContextCompat.getDrawable(requireContext(), R.drawable.baseline_check_circle_24)
@@ -174,6 +178,7 @@ public class DogDetailsFragment extends Fragment {
 
         dogGender.setText(getString(R.string.gender_detail, gender));
         dogDescription.setText(description);
+
 
         // GET OWNER INFO
         mUserListener = new ValueEventListener() {

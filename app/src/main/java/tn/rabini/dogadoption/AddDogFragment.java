@@ -216,7 +216,8 @@ public class AddDogFragment extends Fragment {
                                     String.valueOf(mapFragment.getLng()),
                                     uri.toString(),
                                     mAuth.getCurrentUser().getUid(),
-                                    readyValue);
+                                    readyValue,
+                                    new Date().getTime());
                             FirebaseDatabase.getInstance()
                                     .getReference("Dogs")
                                     .child(dog.getId())

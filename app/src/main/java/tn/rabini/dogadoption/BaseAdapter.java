@@ -1,11 +1,14 @@
 package tn.rabini.dogadoption;
 
 import android.content.Context;
+import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.CircularProgressDrawable;
@@ -17,7 +20,17 @@ import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.maps.android.SphericalUtil;
 
+import org.joda.time.DateTime;
+import org.joda.time.Weeks;
+
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.ZonedDateTime;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 import tn.rabini.dogadoption.models.Dog;
 
@@ -73,6 +86,29 @@ public class BaseAdapter<T, H extends RecyclerView.ViewHolder> extends FirebaseR
         flipBundle.putString("distance", String.format(Locale.CANADA, "%.2f", distance / 1000)+"km away");
         flipBundle.putBoolean("ready", model.isReady());
         flipBundle.putString("owner", model.getOwner());
+        flipBundle.putString("published_at", getDate(model.getPublishedDate()));
         ((AppCompatActivity) context).getSupportFragmentManager().setFragmentResult("flipResult", flipBundle);
+    }
+
+    public String getDate(long l1) {
+        Date date = new Date();
+        date.setTime(l1);
+        SimpleDateFormat formatter = new SimpleDateFormat("dd MMMM yyyy", Locale.FRANCE);
+        return formatter.format(date);
+    }
+
+    public long isNew(long l1) {
+
+        // LAST WEEK FROM NOW
+        Date now = new Date();
+        Calendar lastWeek = Calendar.getInstance();
+        lastWeek.setTime(now);
+        lastWeek.add(Calendar.WEEK_OF_YEAR, -1);
+
+        // PUBLISHED DATE
+        Date pd = new Date();
+        pd.setTime(l1);
+
+        return TimeUnit.DAYS.convert(pd.getTime() - lastWeek.getTime().getTime(), TimeUnit.MILLISECONDS);
     }
 }

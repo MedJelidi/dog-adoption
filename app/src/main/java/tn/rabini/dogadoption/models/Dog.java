@@ -4,12 +4,14 @@ public class Dog {
     private String id, name, race, age, gender, description, lat, lng, image, owner;
     private boolean ready;
     private double distance;
+    private long publishedDate;
 
-    public Dog() {}
+    public Dog() {
+    }
 
     public Dog(String id, String name, String race, String age, String gender,
                String description, String lat, String lng, String image,
-               String owner, boolean ready) {
+               String owner, boolean ready, long publishedDate) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -21,6 +23,7 @@ public class Dog {
         this.image = image;
         this.owner = owner;
         this.ready = ready;
+        this.publishedDate = publishedDate;
         this.distance = 0.0;
     }
 
@@ -80,6 +83,22 @@ public class Dog {
         return owner;
     }
 
+    public double getDistance() {
+        return distance;
+    }
+
+    public void setDistance(double distance) {
+        this.distance = distance;
+    }
+
+    public long getPublishedDate() {
+        return publishedDate;
+    }
+
+    public void setPublishedDate(long publishedDate) {
+        this.publishedDate = publishedDate;
+    }
+
     @Override
     public String toString() {
         return "Dog{" +
@@ -91,10 +110,11 @@ public class Dog {
                 ", description='" + description + '\'' +
                 ", lat='" + lat + '\'' +
                 ", lng='" + lng + '\'' +
-                ", distance='" + distance + '\'' +
                 ", image='" + image + '\'' +
                 ", owner='" + owner + '\'' +
                 ", ready=" + ready +
+                ", distance=" + distance +
+                ", publishedDate=" + publishedDate +
                 '}';
     }
 }
