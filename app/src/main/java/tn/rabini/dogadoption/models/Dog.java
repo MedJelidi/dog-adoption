@@ -1,5 +1,11 @@
 package tn.rabini.dogadoption.models;
 
+import com.google.android.gms.maps.model.LatLng;
+import com.google.firebase.database.DataSnapshot;
+import com.google.maps.android.SphericalUtil;
+
+import java.util.Comparator;
+
 public class Dog {
     private String id, name, race, age, gender, description, lat, lng, image, owner;
     private boolean ready;
@@ -97,6 +103,22 @@ public class Dog {
 
     public void setPublishedDate(long publishedDate) {
         this.publishedDate = publishedDate;
+    }
+
+    public static Comparator<DataSnapshot> distanceComparator(double lat, double lng) {
+        return (dt1, dt2) -> {
+            Dog d1 = dt1.getValue(Dog.class);
+            Dog d2 = dt2.getValue(Dog.class);
+            if (d1 != null && d2 != null) {
+                LatLng myLoc = new LatLng(lat, lng);
+                LatLng loc1 = new LatLng(Double.parseDouble(d1.getLat()), Double.parseDouble(d1.getLng()));
+                LatLng loc2 = new LatLng(Double.parseDouble(d2.getLat()), Double.parseDouble(d2.getLng()));
+                double distance1 = SphericalUtil.computeDistanceBetween(myLoc, loc1);
+                double distance2 = SphericalUtil.computeDistanceBetween(myLoc, loc2);
+                return Double.compare(distance1, distance2);
+            }
+            return 0;
+        };
     }
 
     @Override

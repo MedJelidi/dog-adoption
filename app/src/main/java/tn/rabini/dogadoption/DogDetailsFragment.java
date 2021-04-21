@@ -28,6 +28,8 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.load.resource.bitmap.CenterCrop;
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -52,8 +54,7 @@ import tn.rabini.dogadoption.models.User;
 
 public class DogDetailsFragment extends Fragment {
 
-    private String id, name, race, age, gender, description, distance, image, owner, contactNumber
-            , publishedDate;
+    private String id, name, race, age, gender, description, distance, image, owner, contactNumber, publishedDate;
     private int previousFragment;
     private ToggleButton likeButton;
     private TextView dogOwner, dogContact;
@@ -216,6 +217,7 @@ public class DogDetailsFragment extends Fragment {
                                 }
                             })
                             .fitCenter()
+                            .transform(new CenterCrop(), new RoundedCorners(30))
                             .diskCacheStrategy(DiskCacheStrategy.ALL)
                             .error(R.drawable.ic_baseline_error_24)
                             .into(dogImage);
@@ -229,21 +231,26 @@ public class DogDetailsFragment extends Fragment {
         };
         mUserReference.addListenerForSingleValueEvent(mUserListener);
 
-        if (mAuth.getCurrentUser() != null && mAuth.getCurrentUser().isEmailVerified()) {
-            dogOwner.setOnClickListener(view -> {
-                Bundle flipBundle = new Bundle();
+        dogOwner.setOnClickListener(view -> {
+            Bundle flipBundle = new Bundle();
+            if (mAuth.getCurrentUser() != null && mAuth.getCurrentUser().isEmailVerified()) {
                 flipBundle.putString("flip", "ToProfile");
                 flipBundle.putString("userID", owner);
                 getParentFragmentManager().setFragmentResult("flipResult", flipBundle);
-            });
+            } else if (mAuth.getCurrentUser() == null) {
+                flipBundle.putString("flip", "ToLogin");
+                getParentFragmentManager().setFragmentResult("flipResult", flipBundle);
+            }
+        });
 
-            dogContact.setOnClickListener(view -> {
+        dogContact.setOnClickListener(view -> {
+            if (mAuth.getCurrentUser() != null && mAuth.getCurrentUser().isEmailVerified()) {
                 Intent dialIntent = new Intent();
                 dialIntent.setAction(Intent.ACTION_DIAL);
                 dialIntent.setData(Uri.parse("tel:" + contactNumber));
                 startActivity(dialIntent);
-            });
-        }
+            }
+        });
 
         // CHECK IF DOG ALREADY LIKED OR NOT
         if (mAuth.getCurrentUser() == null) {

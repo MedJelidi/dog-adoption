@@ -114,5 +114,5 @@
     <string name="go_my_current_location">Go my current Location</string>
     <string name="go_to_my_current_location">Go to my current location</string>
     <string name="new_word">NEW\u00A0</string>
-    <string name="published_at">Published at: %s\u00A0</string>
+    <string name="published_at">Published on: %s\u00A0</string>
 </resources>

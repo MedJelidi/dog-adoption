@@ -93,7 +93,7 @@ public class BaseAdapter<T, H extends RecyclerView.ViewHolder> extends FirebaseR
     public String getDate(long l1) {
         Date date = new Date();
         date.setTime(l1);
-        SimpleDateFormat formatter = new SimpleDateFormat("dd MMMM yyyy", Locale.FRANCE);
+        SimpleDateFormat formatter = new SimpleDateFormat("dd MMMM yyyy", Locale.CANADA);
         return formatter.format(date);
     }
 

@@ -268,6 +268,7 @@ public class ProfileFragment extends Fragment {
         phoneView = v.findViewById(R.id.phoneView);
         emailView = v.findViewById(R.id.emailView);
         profileImage = v.findViewById(R.id.profileImage);
+        LinearLayout logOutLayout = v.findViewById(R.id.logOutLayout);
         RecyclerView myDogList = v.findViewById(R.id.myDogList);
         myDogList.setLayoutManager(new LinearLayoutManager(requireContext()));
         FirebaseRecyclerOptions<String> options = new FirebaseRecyclerOptions.Builder<String>()
@@ -282,7 +283,7 @@ public class ProfileFragment extends Fragment {
                 switchTo();
             });
         else
-            logOutButton.setVisibility(View.GONE);
+            logOutLayout.setVisibility(View.GONE);
 
         if (mAuth.getCurrentUser() != null && isUser) {
             if (!mAuth.getCurrentUser().isEmailVerified()) {
