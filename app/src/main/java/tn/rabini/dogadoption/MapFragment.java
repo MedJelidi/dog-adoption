@@ -101,7 +101,7 @@ public class MapFragment extends DialogFragment {
         currentLocationButton.setOnClickListener(view -> {
             if (ActivityCompat.checkSelfPermission(
                     requireActivity(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-                    && locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                    && locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
                 getCurrentLocation();
             } else {
                 AlertDialog alertDialog = new AlertDialog.Builder(requireContext()).create();
@@ -139,7 +139,7 @@ public class MapFragment extends DialogFragment {
         } else {
             if (ActivityCompat.checkSelfPermission(
                     requireActivity(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-                    && locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                    && locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
                 getCurrentLocation();
             } else {
                 mapFragment.getMapAsync(googleMap -> {
@@ -187,7 +187,7 @@ public class MapFragment extends DialogFragment {
                     requireActivity(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                 spinner.setVisibility(View.VISIBLE);
                 currentLocationButton.setVisibility(View.GONE);
-                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
             }
         } else {
             mapFragment.getMapAsync(googleMap -> {

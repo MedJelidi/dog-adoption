@@ -94,11 +94,12 @@ public class MainActivity extends AppCompatActivity {
         if (ActivityCompat.checkSelfPermission(getApplicationContext(),
                 Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             locationListener = initLocationListener();
-            locationManager.requestSingleUpdate(LocationManager.GPS_PROVIDER, locationListener, null);
+            locationManager.requestSingleUpdate(LocationManager.NETWORK_PROVIDER, locationListener, null);
         }
     }
 
     private LocationListener initLocationListener() {
+        Log.v("locatiiiiiiiiiiiiiion", "blabjjjjjjjla");
         return new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
