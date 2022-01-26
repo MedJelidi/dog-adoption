@@ -1,4 +1,4 @@
-package tn.rabini.dogadoption;
+package tn.rabini.petadoption;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -19,12 +19,12 @@ import com.google.firebase.database.FirebaseDatabase;
 
 public class FavoritesFragment extends Fragment {
 
-    private RecyclerView dogList;
-    private LikedDogAdapter likedDogAdapter;
+    private RecyclerView petList;
+    private LikedPetAdapter likedPetAdapter;
     private DatabaseReference ref;
     private CircularProgressIndicator spinner;
     private LinearLayout noLikeLayout;
-    private TextView dogListLink;
+    private TextView petListLink;
     private double lat, lng;
 
     public FavoritesFragment() {
@@ -48,7 +48,7 @@ public class FavoritesFragment extends Fragment {
                 .getReference()
                 .child("Users")
                 .child(mAuth.getCurrentUser().getUid())
-                .child("likedDogs");
+                .child("likedPets");
     }
 
     @Override
@@ -58,31 +58,31 @@ public class FavoritesFragment extends Fragment {
         View v = inflater.inflate(R.layout.fragment_favorites, container, false);
         spinner = v.findViewById(R.id.spinner);
         noLikeLayout = v.findViewById(R.id.noLikeLayout);
-        dogListLink = v.findViewById(R.id.dogListLink);
-        dogList = v.findViewById(R.id.dogList);
-        dogList.setLayoutManager(new LinearLayoutManager(requireContext()));
+        petListLink = v.findViewById(R.id.petListLink);
+        petList = v.findViewById(R.id.petList);
+        petList.setLayoutManager(new LinearLayoutManager(requireContext()));
         FirebaseRecyclerOptions<String> options = new FirebaseRecyclerOptions.Builder<String>()
                 .setQuery(ref, String.class)
                 .build();
-        likedDogAdapter = new LikedDogAdapter(options, requireContext(), requireActivity(), lat, lng) {
+        likedPetAdapter = new LikedPetAdapter(options, requireContext(), requireActivity(), lat, lng) {
             @Override
             public void onDataChanged() {
                 super.onDataChanged();
                 spinner.setVisibility(View.GONE);
                 if (getItemCount() == 0) {
                     noLikeLayout.setVisibility(View.VISIBLE);
-                    dogListLink.setOnClickListener(view -> {
+                    petListLink.setOnClickListener(view -> {
                         Bundle flipBundle = new Bundle();
                         flipBundle.putString("flip", "ToHome");
                         getParentFragmentManager().setFragmentResult("flipResult", flipBundle);
                     });
                 } else {
-                    dogList.setVisibility(View.VISIBLE);
+                    petList.setVisibility(View.VISIBLE);
                 }
             }
         };
 
-        dogList.setAdapter(likedDogAdapter);
+        petList.setAdapter(likedPetAdapter);
 
         return v;
     }
@@ -90,18 +90,18 @@ public class FavoritesFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
-        likedDogAdapter.startListening();
+        likedPetAdapter.startListening();
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        likedDogAdapter.stopListening();
+        likedPetAdapter.stopListening();
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        likedDogAdapter.cleanupListeners();
+        likedPetAdapter.cleanupListeners();
     }
 }

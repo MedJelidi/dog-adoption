@@ -1,4 +1,4 @@
-package tn.rabini.dogadoption;
+package tn.rabini.petadoption;
 
 import org.junit.Test;
 

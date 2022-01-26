@@ -1,4 +1,4 @@
-package tn.rabini.dogadoption;
+package tn.rabini.petadoption;
 
 import android.Manifest;
 import android.app.AlertDialog;

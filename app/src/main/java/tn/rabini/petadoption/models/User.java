@@ -1,11 +1,11 @@
-package tn.rabini.dogadoption.models;
+package tn.rabini.petadoption.models;
 
 import java.util.HashMap;
 
 public class User {
     private String username, email, phone, picture;
-    private HashMap<String, String> dogs;
-    private HashMap<String, String> likedDogs;
+    private HashMap<String, String> pets;
+    private HashMap<String, String> likedPets;
 
     public User() {}
 
@@ -14,8 +14,8 @@ public class User {
         this.email = email;
         this.phone = phone;
         this.picture = picture;
-        this.dogs = new HashMap<>();
-        this.likedDogs = new HashMap<>();
+        this.pets = new HashMap<>();
+        this.likedPets = new HashMap<>();
     }
 
     public String getUsername() {
@@ -34,18 +34,17 @@ public class User {
         return picture;
     }
 
-    public HashMap<String, String> getDogs() {
-        return dogs;
+    public HashMap<String, String> getPets() {
+        return pets;
     }
 
-    public HashMap<String, String> getLikedDogs() {
-        return likedDogs;
+    public HashMap<String, String> getLikedPets() {
+        return likedPets;
     }
 
-    public void setLikedDogs(HashMap<String, String> likedDogs) {
-        this.likedDogs = likedDogs;
+    public void setLikedPets(HashMap<String, String> likedPets) {
+        this.likedPets = likedPets;
     }
-
 
     @Override
     public String toString() {
@@ -54,8 +53,8 @@ public class User {
                 ", email='" + email + '\'' +
                 ", phone='" + phone + '\'' +
                 ", picture='" + picture + '\'' +
-                ", dogs=" + dogs +
-                ", likedDogs=" + likedDogs +
+                ", pets=" + pets +
+                ", likedPets=" + likedPets +
                 '}';
     }
 }

@@ -1,4 +1,4 @@
-package tn.rabini.dogadoption;
+package tn.rabini.petadoption;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -11,6 +11,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -45,17 +46,19 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Locale;
-import java.util.Map;
 import java.util.TimeZone;
 import java.util.UUID;
 
-public class EditDogFragment extends Fragment {
+import tn.rabini.petadoption.models.Pet;
+import tn.rabini.petadoption.models.User;
+
+public class AddPetFragment extends Fragment {
 
     ActivityResultLauncher<Intent> startImageIntent;
-    private TextInputLayout nameLayout, descriptionLayout;
-    private TextInputEditText nameInput, descriptionInput;
-    private String nameValue, raceValue, ageValue, descriptionValue, latValue, lngValue, imageValue,
-            genderValue, dogId;
+    private TextInputLayout nameLayout, descriptionLayout, raceLayout;
+    private TextInputEditText nameInput, descriptionInput, raceInput;
+    private String nameValue, raceValue, ageValue, descriptionValue, typeValue,
+            genderValue = "Male";
     private boolean readyValue;
     private TextView errorView;
     private Button submitButton;
@@ -65,30 +68,14 @@ public class EditDogFragment extends Fragment {
     private FirebaseAuth mAuth;
     private CircularProgressIndicator spinner;
     private LinearLayout submitCancelLayout;
-    private MaterialSpinner raceLayout;
+    private MaterialSpinner typeLayout;
     private MapFragment mapFragment;
-    private DatabaseReference mUserDogsReference;
-    private ValueEventListener mUserDogsListener;
+    private ValueEventListener mUserListener;
+    private DatabaseReference mUserReference;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getParentFragmentManager().setFragmentResultListener("MAPPED", this, (requestKey, result) -> {
-            latValue = result.getString("latValue");
-            lngValue = result.getString("lngValue");
-        });
-        if (getArguments() != null) {
-            dogId = getArguments().getString("id");
-            nameValue = getArguments().getString("name");
-            raceValue = getArguments().getString("race");
-            ageValue = getArguments().getString("age");
-            genderValue = getArguments().getString("gender");
-            descriptionValue = getArguments().getString("description");
-            latValue = getArguments().getString("lat");
-            lngValue = getArguments().getString("lng");
-            imageValue = getArguments().getString("image");
-            readyValue = getArguments().getBoolean("ready");
-        }
         startImageIntent = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
@@ -101,24 +88,22 @@ public class EditDogFragment extends Fragment {
         FirebaseStorage storage = FirebaseStorage.getInstance();
         storageReference = storage.getReference();
         mAuth = FirebaseAuth.getInstance();
-        mUserDogsReference = FirebaseDatabase.getInstance()
-                .getReference("Users")
-                .child(mAuth.getCurrentUser().getUid())
-                .child("dogs");
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View v = inflater.inflate(R.layout.fragment_edit_dog, container, false);
+        View v = inflater.inflate(R.layout.fragment_add_pet, container, false);
         nameLayout = v.findViewById(R.id.nameLayout);
-        raceLayout = v.findViewById(R.id.raceLayout);
-        Button ageButton = v.findViewById(R.id.ageButton);
         MaterialSpinner genderLayout = v.findViewById(R.id.genderLayout);
+        raceLayout = v.findViewById(R.id.raceLayout);
+        typeLayout = v.findViewById(R.id.typeLayout);
+        Button ageButton = v.findViewById(R.id.ageButton);
         descriptionLayout = v.findViewById(R.id.descriptionLayout);
         nameInput = v.findViewById(R.id.nameInput);
         descriptionInput = v.findViewById(R.id.descriptionInput);
+        raceInput = v.findViewById(R.id.raceInput);
         errorView = v.findViewById(R.id.errorView);
         Button imageButton = v.findViewById(R.id.imagePickerButton);
         readySwitch = v.findViewById(R.id.readySwitch);
@@ -129,11 +114,9 @@ public class EditDogFragment extends Fragment {
 
         Button locationButton = v.findViewById(R.id.locationButton);
         locationButton.setOnClickListener(view -> {
-            mapFragment = new MapFragment(true, Double.parseDouble(latValue), Double.parseDouble(lngValue));
+            mapFragment = new MapFragment(false, 0, 0);
             mapFragment.show(requireActivity().getSupportFragmentManager(), null);
         });
-
-        nameInput.setText(nameValue);
 
         MaterialDatePicker<Long> agePicker = handleCalendar();
 
@@ -152,8 +135,6 @@ public class EditDogFragment extends Fragment {
         genderAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         genderLayout.setAdapter(genderAdapter);
 
-        genderLayout.setSelection(genderAdapter.getPosition(genderValue));
-
         genderLayout.setOnItemSelectedListener(new MaterialSpinner.OnItemSelectedListener() {
             @Override
             public void onItemSelected(@NonNull MaterialSpinner materialSpinner, View view, int i, long l) {
@@ -162,30 +143,25 @@ public class EditDogFragment extends Fragment {
 
             @Override
             public void onNothingSelected(@NonNull MaterialSpinner materialSpinner) {
+                genderValue = "Male";
             }
         });
 
-        ArrayAdapter<CharSequence> raceAdapter = ArrayAdapter.createFromResource(requireContext(),
-                R.array.dog_races, android.R.layout.simple_spinner_item);
-        raceAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        raceLayout.setAdapter(raceAdapter);
+        ArrayAdapter<CharSequence> typeAdapter = ArrayAdapter.createFromResource(requireContext(),
+                R.array.pet_types, android.R.layout.simple_spinner_item);
+        typeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        typeLayout.setAdapter(typeAdapter);
 
-        raceLayout.setSelection(raceAdapter.getPosition(raceValue));
-
-        raceLayout.setOnItemSelectedListener(new MaterialSpinner.OnItemSelectedListener() {
+        typeLayout.setOnItemSelectedListener(new MaterialSpinner.OnItemSelectedListener() {
             @Override
             public void onItemSelected(@NonNull MaterialSpinner materialSpinner, View view, int i, long l) {
-                raceValue = materialSpinner.getSelectedItem().toString();
+                typeValue = materialSpinner.getSelectedItem().toString();
             }
 
             @Override
             public void onNothingSelected(@NonNull MaterialSpinner materialSpinner) {
             }
         });
-
-        descriptionInput.setText(descriptionValue);
-        readySwitch.setChecked(readyValue);
-        imagePath = Uri.parse(imageValue);
 
         imageButton.setOnClickListener(view -> {
             Intent intent = new Intent();
@@ -221,6 +197,7 @@ public class EditDogFragment extends Fragment {
     private void onSubmit() {
         nameValue = nameInput.getText().toString().trim();
         descriptionValue = descriptionInput.getText().toString().trim();
+        raceValue = raceInput.getText().toString().trim();
         readyValue = readySwitch.isChecked();
         if (formValid()) {
             submitButton.setEnabled(false);
@@ -228,98 +205,92 @@ public class EditDogFragment extends Fragment {
             spinner.setVisibility(View.VISIBLE);
             String imageID = UUID.randomUUID().toString();
             StorageReference ref = storageReference.child("images/" + imageID);
-
-            if (imagePath.toString().equals(imageValue)) {
-                editDog(imageValue);
-            } else {
-                ref.putFile(imagePath)
-                        .addOnSuccessListener(taskSnapshot -> {
-                            final Task<Uri> firebaseUri = taskSnapshot.getStorage().getDownloadUrl();
-                            firebaseUri.addOnSuccessListener(uri -> FirebaseStorage.getInstance()
-                                    .getReferenceFromUrl(imageValue)
-                                    .delete()
-                                    .addOnSuccessListener(aVoid -> editDog(uri.toString()))
-                                    .addOnFailureListener(e -> {
-                                        spinner.setVisibility(View.INVISIBLE);
-                                        submitCancelLayout.setVisibility(View.VISIBLE);
-                                        submitButton.setEnabled(true);
-                                        Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), e.getMessage(), Snackbar.LENGTH_LONG)
-                                                .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
-                                                .show();
-                                    }));
-                        })
-                        .addOnFailureListener(e -> {
-                            spinner.setVisibility(View.INVISIBLE);
-                            submitCancelLayout.setVisibility(View.VISIBLE);
-                            submitButton.setEnabled(true);
-                            Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), e.getMessage(), Snackbar.LENGTH_LONG)
-                                    .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
-                                    .show();
-                        });
-            }
-        }
-    }
-
-    private void editDog(String imageUrl) {
-        mUserDogsListener = new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                    String dogID = dataSnapshot.getValue(String.class);
-                    if (dogID != null) {
-                        if (dogID.equals(dogId)) {
-                            Map<String, Object> dogUpdates = new HashMap<>();
-                            dogUpdates.put("description", descriptionValue);
-                            dogUpdates.put("gender", genderValue);
-                            dogUpdates.put("name", nameValue.substring(0, 1).toUpperCase() + nameValue.substring(1));
-                            dogUpdates.put("race", raceValue);
-                            dogUpdates.put("age", ageValue);
-                            dogUpdates.put("lat", latValue);
-                            dogUpdates.put("lng", lngValue);
-                            dogUpdates.put("image", imageUrl);
-                            dogUpdates.put("ready", readyValue);
+            ref.putFile(imagePath)
+                    .addOnSuccessListener(taskSnapshot -> {
+                        final Task<Uri> firebaseUri = taskSnapshot.getStorage().getDownloadUrl();
+                        firebaseUri.addOnSuccessListener(uri -> {
+                            Pet pet = new Pet(UUID.randomUUID().toString(),
+                                    nameValue.substring(0, 1).toUpperCase() + nameValue.substring(1),
+                                    raceValue,
+                                    ageValue,
+                                    genderValue,
+                                    descriptionValue,
+                                    String.valueOf(mapFragment.getLat()),
+                                    String.valueOf(mapFragment.getLng()),
+                                    uri.toString(),
+                                    mAuth.getCurrentUser().getUid(),
+                                    typeValue,
+                                    readyValue,
+                                    new Date().getTime());
                             FirebaseDatabase.getInstance()
-                                    .getReference("Dogs")
-                                    .child(dogId)
-                                    .updateChildren(dogUpdates, (error1, ref1) -> {
-                                        if (error1 != null) {
-                                            spinner.setVisibility(View.INVISIBLE);
-                                            submitCancelLayout.setVisibility(View.VISIBLE);
-                                            submitButton.setEnabled(true);
-                                            Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), error1.getMessage(), Snackbar.LENGTH_LONG)
-                                                    .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
-                                                    .show();
+                                    .getReference("Pets")
+                                    .child(pet.getId())
+                                    .setValue(pet)
+                                    .addOnCompleteListener(task -> {
+                                        if (task.isSuccessful()) {
+                                            mUserReference = FirebaseDatabase.getInstance()
+                                                    .getReference("Users")
+                                                    .child(mAuth.getCurrentUser().getUid());
+
+                                            mUserListener = new ValueEventListener() {
+                                                @Override
+                                                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                                    User user = snapshot.getValue(User.class);
+                                                    if (user != null) {
+                                                        HashMap<String, String> pets = new HashMap<>();
+                                                        if (user.getPets() != null) {
+                                                            pets = user.getPets();
+                                                        }
+                                                        pets.put(UUID.randomUUID().toString(), pet.getId());
+                                                        FirebaseDatabase.getInstance()
+                                                                .getReference("Users")
+                                                                .child(mAuth.getCurrentUser().getUid())
+                                                                .child("pets")
+                                                                .setValue(pets);
+                                                    }
+                                                    spinner.setVisibility(View.INVISIBLE);
+                                                    Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), "Pet added successfully!", Snackbar.LENGTH_LONG)
+                                                            .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
+                                                            .show();
+                                                    switchTo();
+                                                }
+
+                                                @Override
+                                                public void onCancelled(@NonNull DatabaseError error) {
+                                                    submitButton.setEnabled(true);
+                                                    submitCancelLayout.setVisibility(View.VISIBLE);
+                                                }
+                                            };
+                                            mUserReference.addListenerForSingleValueEvent(mUserListener);
+
                                         } else {
-                                            Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), "Dog updated successfully!", Snackbar.LENGTH_LONG)
-                                                    .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
-                                                    .show();
-                                            switchTo();
+                                            submitButton.setEnabled(true);
+                                            submitCancelLayout.setVisibility(View.VISIBLE);
                                         }
+
                                     });
-                            break;
-                        }
-                    }
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
-            }
-        };
-        mUserDogsReference.addListenerForSingleValueEvent(mUserDogsListener);
+                        });
+                    })
+                    .addOnFailureListener(e -> {
+                        spinner.setVisibility(View.INVISIBLE);
+                        submitButton.setEnabled(true);
+                        submitCancelLayout.setVisibility(View.VISIBLE);
+                        Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_LONG).show();
+                    });
+        }
     }
 
     private void switchTo() {
         Bundle flipBundle = new Bundle();
-        flipBundle.putString("flip", "ToProfile");
-        flipBundle.putString("userID", mAuth.getCurrentUser().getUid());
+        flipBundle.putString("flip", "ToHome");
         getParentFragmentManager().setFragmentResult("flipResult", flipBundle);
     }
 
     private boolean formValid() {
         nameLayout.setError(null);
         descriptionLayout.setError(null);
+        raceLayout.setError(null);
+        typeLayout.setError(null);
         errorView.setVisibility(View.INVISIBLE);
         if (nameValue == null || nameValue.length() < 2 || nameValue.length() > 20) {
             nameLayout.setError("2 < name < 20");
@@ -327,6 +298,10 @@ public class EditDogFragment extends Fragment {
         }
         if (raceValue == null || raceValue.length() == 0) {
             raceLayout.setError("Race required.");
+            return false;
+        }
+        if (typeValue == null || typeValue.length() == 0) {
+            typeLayout.setError("Type required.");
             return false;
         }
         if (ageValue == null || ageValue.length() == 0) {
@@ -338,13 +313,23 @@ public class EditDogFragment extends Fragment {
             descriptionLayout.setError("Description required.");
             return false;
         }
+        if (mapFragment == null || mapFragment.getLat() == 0 || mapFragment.getLng() == 0) {
+            errorView.setText(getString(R.string.location_required));
+            errorView.setVisibility(View.VISIBLE);
+            return false;
+        }
+        if (imagePath == null) {
+            errorView.setText(getString(R.string.image_required));
+            errorView.setVisibility(View.VISIBLE);
+            return false;
+        }
         return true;
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (mUserDogsListener != null)
-            mUserDogsReference.removeEventListener(mUserDogsListener);
+        if (mUserListener != null)
+            mUserReference.removeEventListener(mUserListener);
     }
 }

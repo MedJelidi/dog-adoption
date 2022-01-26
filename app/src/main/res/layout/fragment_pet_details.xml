@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:scrollbars="vertical"
-    tools:context=".DogDetailsFragment">
+    tools:context=".PetDetailsFragment">
 
     <ImageView
         android:id="@+id/arrowBack"
@@ -60,27 +60,27 @@
             android:visibility="invisible">
 
             <ImageView
-                android:id="@+id/dogImage"
+                android:id="@+id/petImage"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerHorizontal="true"
                 android:adjustViewBounds="true"
-                android:contentDescription="@string/dog_picture"
+                android:contentDescription="@string/pet_picture"
                 android:maxWidth="250dp"
                 android:maxHeight="250dp"
                 android:scaleType="fitCenter" />
 
             <LinearLayout
-                android:id="@+id/dogNameGender"
+                android:id="@+id/petNameGender"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/dogImage"
+                android:layout_below="@+id/petImage"
                 android:layout_centerHorizontal="true"
                 android:layout_marginTop="20dp"
                 android:orientation="vertical">
 
                 <TextView
-                    android:id="@+id/dogName"
+                    android:id="@+id/petName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
@@ -89,7 +89,7 @@
                     android:textSize="32sp" />
 
                 <TextView
-                    android:id="@+id/dogGender"
+                    android:id="@+id/petGender"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
@@ -98,10 +98,10 @@
             </LinearLayout>
 
             <TextView
-                android:id="@+id/dogDescription"
+                android:id="@+id/petDescription"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/dogNameGender"
+                android:layout_below="@+id/petNameGender"
                 android:layout_centerHorizontal="true"
                 android:layout_marginTop="15dp"
                 android:layout_marginBottom="15dp"
@@ -115,7 +115,7 @@
                 android:id="@+id/specificDetails"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/dogDescription"
+                android:layout_below="@+id/petDescription"
                 android:orientation="vertical">
 
                 <View
@@ -124,7 +124,7 @@
                     android:background="#8E8E8E" />
 
                 <TextView
-                    android:id="@+id/dogRace"
+                    android:id="@+id/petRace"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_vertical"
@@ -143,7 +143,7 @@
                     android:background="#8E8E8E" />
 
                 <TextView
-                    android:id="@+id/dogAge"
+                    android:id="@+id/petAge"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_vertical"
@@ -162,7 +162,7 @@
                     android:background="#8E8E8E" />
 
                 <TextView
-                    android:id="@+id/dogLocation"
+                    android:id="@+id/petLocation"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_vertical"
@@ -181,7 +181,7 @@
                     android:background="#8E8E8E" />
 
                 <TextView
-                    android:id="@+id/dogOwner"
+                    android:id="@+id/petOwner"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_vertical"
@@ -200,7 +200,7 @@
                     android:background="#8E8E8E" />
 
                 <TextView
-                    android:id="@+id/dogContact"
+                    android:id="@+id/petContact"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_vertical"
@@ -219,7 +219,7 @@
                     android:background="#8E8E8E" />
 
                 <TextView
-                    android:id="@+id/dogReady"
+                    android:id="@+id/petReady"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_vertical"

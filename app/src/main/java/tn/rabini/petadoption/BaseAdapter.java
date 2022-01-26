@@ -1,14 +1,11 @@
-package tn.rabini.dogadoption;
+package tn.rabini.petadoption;
 
 import android.content.Context;
-import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.CircularProgressDrawable;
@@ -20,19 +17,13 @@ import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.maps.android.SphericalUtil;
 
-import org.joda.time.DateTime;
-import org.joda.time.Weeks;
-
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.ZonedDateTime;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
-import tn.rabini.dogadoption.models.Dog;
+import tn.rabini.petadoption.models.Pet;
 
 public class BaseAdapter<T, H extends RecyclerView.ViewHolder> extends FirebaseRecyclerAdapter<T, H> {
 
@@ -72,9 +63,9 @@ public class BaseAdapter<T, H extends RecyclerView.ViewHolder> extends FirebaseR
         return SphericalUtil.computeDistanceBetween(loc1, loc2);
     }
 
-    public void switchToDetails(Context context, Dog model, double distance, int previousFragment) {
+    public void switchToDetails(Context context, Pet model, double distance, int previousFragment) {
         Bundle flipBundle = new Bundle();
-        flipBundle.putString("flip", "ToDogDetails");
+        flipBundle.putString("flip", "ToPetDetails");
         flipBundle.putInt("previous_fragment", previousFragment);
         flipBundle.putString("id", model.getId());
         flipBundle.putString("image", model.getImage());

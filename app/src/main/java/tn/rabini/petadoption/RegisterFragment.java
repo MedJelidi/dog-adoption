@@ -1,4 +1,4 @@
-package tn.rabini.dogadoption;
+package tn.rabini.petadoption;
 
 import android.os.Bundle;
 import android.util.Patterns;
@@ -26,7 +26,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.Objects;
 
-import tn.rabini.dogadoption.models.User;
+import tn.rabini.petadoption.models.User;
 
 public class RegisterFragment extends Fragment {
 

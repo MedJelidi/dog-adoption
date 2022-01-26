@@ -1,4 +1,4 @@
-package tn.rabini.dogadoption;
+package tn.rabini.petadoption;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -24,10 +24,10 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.HashMap;
 import java.util.Map;
 
-import tn.rabini.dogadoption.models.Dog;
-import tn.rabini.dogadoption.models.User;
+import tn.rabini.petadoption.models.Pet;
+import tn.rabini.petadoption.models.User;
 
-public class LikedDogAdapter extends BaseAdapter<String, LikedDogAdapter.LikedDogViewHolder> {
+public class LikedPetAdapter extends BaseAdapter<String, LikedPetAdapter.LikedPetViewHolder> {
 
     private final Context context;
     private final FragmentActivity activity;
@@ -35,11 +35,11 @@ public class LikedDogAdapter extends BaseAdapter<String, LikedDogAdapter.LikedDo
     private final DatabaseReference mCurrentUserReference = FirebaseDatabase.getInstance()
             .getReference("Users")
             .child(FirebaseAuth.getInstance().getCurrentUser().getUid()),
-            mLikedDogsReference = mCurrentUserReference.child("likedDogs");
-    private ValueEventListener mLikedDogsListener, mDogListener, mCurrentUserListener;
-    private DatabaseReference mDogReference;
+            mLikedPetsReference = mCurrentUserReference.child("likedPets");
+    private ValueEventListener mLikedPetsListener, mPetListener, mCurrentUserListener;
+    private DatabaseReference mPetReference;
 
-    public LikedDogAdapter(@NonNull FirebaseRecyclerOptions<String> options, Context context, FragmentActivity activity, double lat, double lng) {
+    public LikedPetAdapter(@NonNull FirebaseRecyclerOptions<String> options, Context context, FragmentActivity activity, double lat, double lng) {
         super(options);
         this.context = context;
         this.activity = activity;
@@ -48,22 +48,22 @@ public class LikedDogAdapter extends BaseAdapter<String, LikedDogAdapter.LikedDo
     }
 
     @Override
-    protected void onBindViewHolder(@NonNull LikedDogAdapter.LikedDogViewHolder holder, int position, @NonNull String model) {
+    protected void onBindViewHolder(@NonNull LikedPetAdapter.LikedPetViewHolder holder, int position, @NonNull String model) {
 
-        mDogReference = FirebaseDatabase.getInstance()
-                .getReference("Dogs")
+        mPetReference = FirebaseDatabase.getInstance()
+                .getReference("Pets")
                 .child(model);
-        mDogListener = new ValueEventListener() {
+        mPetListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                Dog dog = snapshot.getValue(Dog.class);
-                if (dog != null) {
-                    glideHandle(context, dog.getImage(), holder.dogImage);
-                    double distance = getDistance(lat, lng, Double.parseDouble(dog.getLat()), Double.parseDouble(dog.getLng()));
-                    holder.dogName.setText(dog.getName());
-                    holder.itemView.setOnClickListener(view -> switchToDetails(context, dog, distance, 1));
+                Pet pet = snapshot.getValue(Pet.class);
+                if (pet != null) {
+                    glideHandle(context, pet.getImage(), holder.petImage);
+                    double distance = getDistance(lat, lng, Double.parseDouble(pet.getLat()), Double.parseDouble(pet.getLng()));
+                    holder.petName.setText(pet.getName());
+                    holder.itemView.setOnClickListener(view -> switchToDetails(context, pet, distance, 1));
                 } else {
-                    mLikedDogsListener = new ValueEventListener() {
+                    mLikedPetsListener = new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot snapshot) {
                             for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
@@ -79,7 +79,7 @@ public class LikedDogAdapter extends BaseAdapter<String, LikedDogAdapter.LikedDo
 
                         }
                     };
-                    mLikedDogsReference.addListenerForSingleValueEvent(mLikedDogsListener);
+                    mLikedPetsReference.addListenerForSingleValueEvent(mLikedPetsListener);
                 }
             }
 
@@ -88,7 +88,7 @@ public class LikedDogAdapter extends BaseAdapter<String, LikedDogAdapter.LikedDo
 
             }
         };
-        mDogReference.addListenerForSingleValueEvent(mDogListener);
+        mPetReference.addListenerForSingleValueEvent(mPetListener);
 
         holder.unlikeButton.setOnClickListener(view -> {
             mCurrentUserListener = new ValueEventListener() {
@@ -96,21 +96,21 @@ public class LikedDogAdapter extends BaseAdapter<String, LikedDogAdapter.LikedDo
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                     User user = snapshot.getValue(User.class);
                     if (user != null) {
-                        HashMap<String, String> likedDogs;
-                        if (user.getLikedDogs() != null) {
-                            likedDogs = user.getLikedDogs();
-                            for (String k : likedDogs.keySet()) {
-                                String dogID = likedDogs.get(k);
-                                if (dogID != null) {
-                                    if (dogID.equals(model)) {
-                                        likedDogs.remove(k);
+                        HashMap<String, String> likedPets;
+                        if (user.getLikedPets() != null) {
+                            likedPets = user.getLikedPets();
+                            for (String k : likedPets.keySet()) {
+                                String petID = likedPets.get(k);
+                                if (petID != null) {
+                                    if (petID.equals(model)) {
+                                        likedPets.remove(k);
                                         break;
                                     }
                                 }
                             }
-                            user.setLikedDogs(likedDogs);
+                            user.setLikedPets(likedPets);
                             Map<String, Object> userUpdates = new HashMap<>();
-                            userUpdates.put("likedDogs", user.getLikedDogs());
+                            userUpdates.put("likedPets", user.getLikedPets());
                             FirebaseDatabase.getInstance()
                                     .getReference("Users")
                                     .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
@@ -120,7 +120,7 @@ public class LikedDogAdapter extends BaseAdapter<String, LikedDogAdapter.LikedDo
                                                     .setAnchorView(activity.findViewById(R.id.bottom_navigation))
                                                     .show();
                                         } else {
-                                            Snackbar.make(activity.findViewById(R.id.coordinatorLayout), "Dog removed from favorites!", Snackbar.LENGTH_LONG)
+                                            Snackbar.make(activity.findViewById(R.id.coordinatorLayout), "Pet removed from favorites!", Snackbar.LENGTH_LONG)
                                                     .setAnchorView(activity.findViewById(R.id.bottom_navigation))
                                                     .show();
                                         }
@@ -141,30 +141,30 @@ public class LikedDogAdapter extends BaseAdapter<String, LikedDogAdapter.LikedDo
 
     @NonNull
     @Override
-    public LikedDogAdapter.LikedDogViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.single_liked_dog, parent, false);
-        return new LikedDogAdapter.LikedDogViewHolder(v);
+    public LikedPetAdapter.LikedPetViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.single_liked_pet, parent, false);
+        return new LikedPetAdapter.LikedPetViewHolder(v);
     }
 
     public void cleanupListeners() {
         if (mCurrentUserListener != null)
             mCurrentUserReference.removeEventListener(mCurrentUserListener);
-        if (mDogListener != null)
-            mDogReference.removeEventListener(mDogListener);
-        if (mLikedDogsListener != null)
-            mLikedDogsReference.removeEventListener(mLikedDogsListener);
+        if (mPetListener != null)
+            mPetReference.removeEventListener(mPetListener);
+        if (mLikedPetsListener != null)
+            mLikedPetsReference.removeEventListener(mLikedPetsListener);
     }
 
-    public static class LikedDogViewHolder extends RecyclerView.ViewHolder {
+    public static class LikedPetViewHolder extends RecyclerView.ViewHolder {
 
-        ImageView dogImage;
-        TextView dogName;
+        ImageView petImage;
+        TextView petName;
         Button unlikeButton;
 
-        public LikedDogViewHolder(@NonNull View itemView) {
+        public LikedPetViewHolder(@NonNull View itemView) {
             super(itemView);
-            dogImage = itemView.findViewById(R.id.dogImage);
-            dogName = itemView.findViewById(R.id.dogName);
+            petImage = itemView.findViewById(R.id.petImage);
+            petName = itemView.findViewById(R.id.petName);
             unlikeButton = itemView.findViewById(R.id.unlikeButton);
         }
     }

@@ -12,11 +12,11 @@
         android:orientation="horizontal">
 
         <ImageView
-            android:id="@+id/dogImage"
+            android:id="@+id/petImage"
             android:layout_width="100dp"
             android:layout_height="100dp"
             android:padding="10dp"
-            android:contentDescription="@string/dog_picture" />
+            android:contentDescription="@string/pet_picture" />
 
         <RelativeLayout
             android:layout_width="wrap_content"
@@ -26,7 +26,7 @@
             android:layout_weight="1">
 
             <TextView
-                android:id="@+id/dogName"
+                android:id="@+id/petName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"

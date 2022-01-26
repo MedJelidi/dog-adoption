@@ -1,4 +1,4 @@
-package tn.rabini.dogadoption;
+package tn.rabini.petadoption;
 
 import android.Manifest;
 import android.app.Activity;
@@ -42,12 +42,17 @@ import com.treebo.internetavailabilitychecker.InternetAvailabilityChecker;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity {
 
     private BottomNavigationView bottomNavigationView;
     private double lat, lng;
     private LocationManager locationManager;
     private LocationListener locationListener;
+    private final ArrayList<Integer> prevFragments = new ArrayList<>(Arrays.asList(R.id.homeItem));
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,10 +64,12 @@ public class MainActivity extends AppCompatActivity {
         bottomNavigationView = findViewById(R.id.bottom_navigation);
         bottomNavigationView.setOnNavigationItemSelectedListener(item -> {
             int option = item.getItemId();
+            String fragment;
+            Bundle result = null;
             if (option == R.id.homeItem)
-                toFragment("ToHome", null);
+                fragment = "ToHome";
             else if (option == R.id.favoritesItem)
-                toFragment("ToFavorites", null);
+                fragment = "ToFavorites";
             else {
                 Bundle bundle = new Bundle();
                 String userID = null;
@@ -70,8 +77,12 @@ public class MainActivity extends AppCompatActivity {
                 if (currentUser != null)
                     userID = currentUser.getUid();
                 bundle.putString("userID", userID);
-                toFragment("ToProfile", bundle);
+                result = bundle;
+                fragment = "ToProfile";
             }
+            prevFragments.add(0, item.getItemId());
+            Log.v("fraaaaaaaaaaaaaag2222", prevFragments.toString());
+            toFragment(fragment, result);
             return true;
         });
 
@@ -81,7 +92,12 @@ public class MainActivity extends AppCompatActivity {
 
         getSupportFragmentManager().setFragmentResultListener("flipResult",
                 this,
-                (requestKey, result) -> toFragment(result.getString("flip"), result));
+                (requestKey, result) -> {
+                    String fragment = result.getString("flip");
+                    prevFragments.add(0, fragment.equals("ToHome") ? R.id.homeItem : fragment.equals("ToFavourites") ? R.id.favoritesItem : R.id.profileItem);
+                    Log.v("fraaaaaaaaaaaaaag1111", prevFragments.toString());
+                    toFragment(fragment, result);
+                });
 
         handleGPS();
         handleInternet();
@@ -271,8 +287,8 @@ public class MainActivity extends AppCompatActivity {
                 replaceFragment(FirebaseAuth.getInstance().getCurrentUser() == null ? LoginFragment.class : ProfileFragment.class, res);
                 bottomNavigationView.getMenu().findItem(R.id.profileItem).setChecked(true);
                 break;
-            case "ToAddDog":
-                replaceFragment(AddDogFragment.class, null);
+            case "ToAddPet":
+                replaceFragment(AddPetFragment.class, null);
                 bottomNavigationView.getMenu().findItem(R.id.homeItem).setChecked(true);
                 break;
             case "ToHome":
@@ -288,11 +304,11 @@ public class MainActivity extends AppCompatActivity {
                     bottomNavigationView.getMenu().findItem(R.id.favoritesItem).setChecked(true);
                 }
                 break;
-            case "ToDogDetails":
-                replaceFragment(DogDetailsFragment.class, result);
+            case "ToPetDetails":
+                replaceFragment(PetDetailsFragment.class, result);
                 break;
-            case "ToEditDog":
-                replaceFragment(EditDogFragment.class, result);
+            case "ToEditPet":
+                replaceFragment(EditPetFragment.class, result);
                 bottomNavigationView.getMenu().findItem(R.id.profileItem).setChecked(true);
                 break;
         }
@@ -344,6 +360,17 @@ public class MainActivity extends AppCompatActivity {
                     break;
             }
         }
+    }
 
+    @Override
+    public void onBackPressed() {
+//        super.onBackPressed();
+        if (prevFragments.size() > 1) {
+            prevFragments.remove(0);
+            Log.v("fraaaaaaaaaaaaaag", prevFragments.toString());
+            bottomNavigationView.setSelectedItemId(prevFragments.get(0));
+            Log.v("selectedItem", String.valueOf(bottomNavigationView.getSelectedItemId()));
+        } else
+            bottomNavigationView.setSelectedItemId(R.id.homeItem);
     }
 }

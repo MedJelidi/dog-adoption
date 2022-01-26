@@ -7,6 +7,6 @@
         android:id="@+id/fullscreenImage"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:contentDescription="@string/dog_picture" />
+        android:contentDescription="@string/pet_picture" />
 
 </RelativeLayout>

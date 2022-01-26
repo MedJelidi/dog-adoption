@@ -17,7 +17,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
-            android:text="@string/your_favorite_dogs"
+            android:text="@string/your_favorite_pets"
             android:textColor="@color/black"
             android:textSize="28sp"
             app:fontFamily="@font/roboto_bold" />
@@ -26,7 +26,7 @@
 
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/dogList"
+        android:id="@+id/petList"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@+id/topBar"
@@ -56,7 +56,7 @@
             android:fontFamily="@font/roboto_light"
             android:textSize="18sp"
             android:textColor="@color/black"
-            android:text="@string/you_have_not_liked_any_dog_yet"/>
+            android:text="@string/you_have_not_liked_any_pet_yet"/>
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -70,10 +70,10 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/roboto_light"
                 android:textSize="14sp"
-                android:text="@string/checkout_some_dogs"/>
+                android:text="@string/checkout_some_pets"/>
 
             <TextView
-                android:id="@+id/dogListLink"
+                android:id="@+id/petListLink"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/roboto_light"

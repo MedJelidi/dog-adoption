@@ -1,4 +1,4 @@
-package tn.rabini.dogadoption;
+package tn.rabini.petadoption;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -29,18 +29,18 @@ import com.google.firebase.storage.FirebaseStorage;
 
 import java.util.Objects;
 
-import tn.rabini.dogadoption.models.Dog;
+import tn.rabini.petadoption.models.Pet;
 
-public class MyDogAdapter extends BaseAdapter<String, MyDogAdapter.MyDogViewHolder> {
+public class MyPetAdapter extends BaseAdapter<String, MyPetAdapter.MyPetViewHolder> {
 
     private final Context context;
     private final FragmentActivity activity;
     private final boolean isUser;
     private final double lat, lng;
-    private DatabaseReference mDogReference, mDogsReference;
-    private ValueEventListener mDogListener, mDogsListener;
+    private DatabaseReference mPetReference, mPetsReference;
+    private ValueEventListener mPetListener, mPetsListener;
 
-    public MyDogAdapter(@NonNull FirebaseRecyclerOptions<String> options, Context context, FragmentActivity activity, boolean isUser, double lat, double lng) {
+    public MyPetAdapter(@NonNull FirebaseRecyclerOptions<String> options, Context context, FragmentActivity activity, boolean isUser, double lat, double lng) {
         super(options);
         this.context = context;
         this.activity = activity;
@@ -50,36 +50,37 @@ public class MyDogAdapter extends BaseAdapter<String, MyDogAdapter.MyDogViewHold
     }
 
     @Override
-    protected void onBindViewHolder(@NonNull MyDogAdapter.MyDogViewHolder holder, int position, @NonNull String model) {
-        mDogReference = FirebaseDatabase.getInstance()
-                .getReference("Dogs")
+    protected void onBindViewHolder(@NonNull MyPetAdapter.MyPetViewHolder holder, int position, @NonNull String model) {
+        mPetReference = FirebaseDatabase.getInstance()
+                .getReference("Pets")
                 .child(model);
-        mDogListener = new ValueEventListener() {
+        mPetListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                Dog dog = snapshot.getValue(Dog.class);
-                if (dog != null) {
-                    glideHandle(context, dog.getImage(), holder.dogImage);
-                    double distance = getDistance(lat, lng, Double.parseDouble(dog.getLat()), Double.parseDouble(dog.getLng()));
-                    holder.itemView.setOnClickListener(view -> switchToDetails(context, dog, distance, 2));
-                    holder.dogName.setText(dog.getName());
+                Pet pet = snapshot.getValue(Pet.class);
+                if (pet != null) {
+                    glideHandle(context, pet.getImage(), holder.petImage);
+                    double distance = getDistance(lat, lng, Double.parseDouble(pet.getLat()), Double.parseDouble(pet.getLng()));
+                    holder.itemView.setOnClickListener(view -> switchToDetails(context, pet, distance, 2));
+                    holder.petName.setText(pet.getName());
                     if (isUser) {
                         holder.editButton.setVisibility(View.VISIBLE);
                         holder.deleteButton.setVisibility(View.VISIBLE);
 
                         holder.editButton.setOnClickListener(view -> {
                             Bundle flipBundle = new Bundle();
-                            flipBundle.putString("flip", "ToEditDog");
-                            flipBundle.putString("id", dog.getId());
-                            flipBundle.putString("image", dog.getImage());
-                            flipBundle.putString("name", dog.getName());
-                            flipBundle.putString("race", dog.getRace());
-                            flipBundle.putString("age", dog.getAge());
-                            flipBundle.putString("gender", dog.getGender());
-                            flipBundle.putString("description", dog.getDescription());
-                            flipBundle.putBoolean("ready", dog.isReady());
-                            flipBundle.putString("lat", dog.getLat());
-                            flipBundle.putString("lng", dog.getLng());
+                            flipBundle.putString("flip", "ToEditPet");
+                            flipBundle.putString("id", pet.getId());
+                            flipBundle.putString("image", pet.getImage());
+                            flipBundle.putString("name", pet.getName());
+                            flipBundle.putString("race", pet.getRace());
+                            flipBundle.putString("age", pet.getAge());
+                            flipBundle.putString("gender", pet.getGender());
+                            flipBundle.putString("type", pet.getType());
+                            flipBundle.putString("description", pet.getDescription());
+                            flipBundle.putBoolean("ready", pet.isReady());
+                            flipBundle.putString("lat", pet.getLat());
+                            flipBundle.putString("lng", pet.getLng());
                             ((AppCompatActivity) context).getSupportFragmentManager().setFragmentResult("flipResult", flipBundle);
                         });
 
@@ -90,28 +91,28 @@ public class MyDogAdapter extends BaseAdapter<String, MyDogAdapter.MyDogViewHold
                                     .setTitle(context.getString(R.string.delete_dialog))
                                     .setPositiveButton("Yes", (dialogInterface, i) ->
                                             FirebaseStorage.getInstance()
-                                                    .getReferenceFromUrl(dog.getImage())
+                                                    .getReferenceFromUrl(pet.getImage())
                                                     .delete()
                                                     .addOnSuccessListener(aVoid -> {
                                                         if (currentUser != null) {
-                                                            mDogsListener = new ValueEventListener() {
+                                                            mPetsListener = new ValueEventListener() {
                                                                 @Override
                                                                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                                                                     for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                                                                        String dogID = dataSnapshot.getValue(String.class);
-                                                                        if (dogID != null) {
-                                                                            if (dogID.equals(model)) {
+                                                                        String petID = dataSnapshot.getValue(String.class);
+                                                                        if (petID != null) {
+                                                                            if (petID.equals(model)) {
                                                                                 dataSnapshot.getRef().removeValue()
                                                                                         .addOnSuccessListener(aVoid -> FirebaseDatabase
                                                                                                 .getInstance()
-                                                                                                .getReference("Dogs")
-                                                                                                .child(dogID)
+                                                                                                .getReference("Pets")
+                                                                                                .child(petID)
                                                                                                 .removeValue()
                                                                                                 .addOnSuccessListener(aVoid1 -> FirebaseDatabase.getInstance()
-                                                                                                        .getReference("Dogs")
+                                                                                                        .getReference("Pets")
                                                                                                         .child(model)
                                                                                                         .removeValue()
-                                                                                                        .addOnSuccessListener(aVoid2 -> Snackbar.make(activity.findViewById(R.id.coordinatorLayout), "Dog deleted successfully!", Snackbar.LENGTH_LONG)
+                                                                                                        .addOnSuccessListener(aVoid2 -> Snackbar.make(activity.findViewById(R.id.coordinatorLayout), "Pet deleted successfully!", Snackbar.LENGTH_LONG)
                                                                                                                 .setAnchorView(activity.findViewById(R.id.bottom_navigation))
                                                                                                                 .show())
                                                                                                         .addOnFailureListener(e -> Snackbar.make(activity.findViewById(R.id.coordinatorLayout), Objects.requireNonNull(e.getMessage()), Snackbar.LENGTH_LONG)
@@ -133,11 +134,11 @@ public class MyDogAdapter extends BaseAdapter<String, MyDogAdapter.MyDogViewHold
                                                                     Toast.makeText(context, error.getMessage(), Toast.LENGTH_LONG).show();
                                                                 }
                                                             };
-                                                            mDogsReference = FirebaseDatabase.getInstance()
+                                                            mPetsReference = FirebaseDatabase.getInstance()
                                                                     .getReference("Users")
                                                                     .child(currentUser.getUid())
-                                                                    .child("dogs");
-                                                            mDogsReference.addListenerForSingleValueEvent(mDogsListener);
+                                                                    .child("pets");
+                                                            mPetsReference.addListenerForSingleValueEvent(mPetsListener);
                                                         }
                                                     }))
                                     .setNegativeButton("No", (dialog, which) -> dialog.cancel());
@@ -152,34 +153,34 @@ public class MyDogAdapter extends BaseAdapter<String, MyDogAdapter.MyDogViewHold
                 Toast.makeText(context, error.getMessage(), Toast.LENGTH_LONG).show();
             }
         };
-        mDogReference.addListenerForSingleValueEvent(mDogListener);
+        mPetReference.addListenerForSingleValueEvent(mPetListener);
 
     }
 
     @NonNull
     @Override
-    public MyDogAdapter.MyDogViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.single_my_dog, parent, false);
-        return new MyDogAdapter.MyDogViewHolder(v);
+    public MyPetAdapter.MyPetViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.single_my_pet, parent, false);
+        return new MyPetAdapter.MyPetViewHolder(v);
     }
 
     public void cleanupListeners() {
-        if (mDogListener != null)
-            mDogReference.removeEventListener(mDogListener);
-        if (mDogsListener != null)
-            mDogsReference.removeEventListener(mDogsListener);
+        if (mPetListener != null)
+            mPetReference.removeEventListener(mPetListener);
+        if (mPetsListener != null)
+            mPetsReference.removeEventListener(mPetsListener);
     }
 
-    public static class MyDogViewHolder extends RecyclerView.ViewHolder {
+    public static class MyPetViewHolder extends RecyclerView.ViewHolder {
 
-        ImageView dogImage;
-        TextView dogName;
+        ImageView petImage;
+        TextView petName;
         Button editButton, deleteButton;
 
-        public MyDogViewHolder(@NonNull View itemView) {
+        public MyPetViewHolder(@NonNull View itemView) {
             super(itemView);
-            dogImage = itemView.findViewById(R.id.dogImage);
-            dogName = itemView.findViewById(R.id.dogName);
+            petImage = itemView.findViewById(R.id.petImage);
+            petName = itemView.findViewById(R.id.petName);
             editButton = itemView.findViewById(R.id.editButton);
             deleteButton = itemView.findViewById(R.id.deleteButton);
         }

@@ -1,19 +1,19 @@
-package tn.rabini.dogadoption;
+package tn.rabini.petadoption;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.PopupMenu;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -21,7 +21,6 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -46,24 +45,29 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import tn.rabini.dogadoption.models.User;
+import tn.rabini.petadoption.models.User;
 
 public class ProfileFragment extends Fragment {
     private FirebaseAuth mAuth;
     private FirebaseUser currentUser;
-    private MyDogAdapter myDogAdapter;
-    private DatabaseReference mUserDogsReference;
+    private MyPetAdapter myPetAdapter;
+    private DatabaseReference mUserPetsReference;
     private TextView usernameView, phoneView, emailView;
-    private ImageView profileImage;
+    private ImageView profileImage, editOptions;
     private CircularProgressIndicator spinner;
     private RelativeLayout allLayouts, topBar;
     private ActivityResultLauncher<Intent> startImageIntent;
+    private ProgressDialog pd;
     private Uri imagePath;
     private String userID;
     private boolean isUser = false;
@@ -104,9 +108,11 @@ public class ProfileFragment extends Fragment {
                         .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
                         .show();
             }
-            spinner.setVisibility(View.GONE);
-            allLayouts.setVisibility(View.VISIBLE);
-            setHasOptionsMenu(true);
+            pd.dismiss();
+//            spinner.setVisibility(View.GONE);
+//            allLayouts.setVisibility(View.VISIBLE);
+            editOptions.setVisibility(View.VISIBLE);
+//            setHasOptionsMenu(true);
         });
     }
 
@@ -133,11 +139,17 @@ public class ProfileFragment extends Fragment {
                         if (result != null
                                 && result.getResultCode() == Activity.RESULT_OK
                                 && result.getData() != null) {
+                            pd = new ProgressDialog(requireContext());
+                            pd.setTitle("Uploading Image...");
+                            pd.show();
+                            pd.setCancelable(false);
+                            pd.setCanceledOnTouchOutside(false);
                             imagePath = result.getData().getData();
                             StorageReference ref = FirebaseStorage.getInstance().getReference().child("images/" + UUID.randomUUID().toString());
-                            allLayouts.setVisibility(View.GONE);
-                            setHasOptionsMenu(false);
-                            spinner.setVisibility(View.VISIBLE);
+//                            allLayouts.setVisibility(View.GONE);
+                            editOptions.setVisibility(View.INVISIBLE);
+//                            setHasOptionsMenu(false);
+//                            spinner.setVisibility(View.VISIBLE);
                             ref.putFile(imagePath)
                                     .addOnSuccessListener(taskSnapshot -> {
                                         final Task<Uri> firebaseUri = taskSnapshot.getStorage().getDownloadUrl();
@@ -167,6 +179,7 @@ public class ProfileFragment extends Fragment {
 
                                                 @Override
                                                 public void onCancelled(@NonNull DatabaseError error) {
+                                                    pd.dismiss();
                                                     Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), error.getMessage(), Snackbar.LENGTH_LONG)
                                                             .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
                                                             .show();
@@ -176,15 +189,25 @@ public class ProfileFragment extends Fragment {
                                         });
                                     })
                                     .addOnFailureListener(e -> {
-                                        spinner.setVisibility(View.GONE);
-                                        allLayouts.setVisibility(View.VISIBLE);
-                                        setHasOptionsMenu(true);
+//                                        spinner.setVisibility(View.GONE);
+//                                        allLayouts.setVisibility(View.VISIBLE);
+                                        editOptions.setVisibility(View.VISIBLE);
+//                                        setHasOptionsMenu(true);
+                                        pd.dismiss();
                                         Snackbar.make(requireActivity().findViewById(R.id.coordinatorLayout), e.getMessage(), Snackbar.LENGTH_LONG)
                                                 .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
                                                 .show();
+                                    })
+                                    .addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
+                                        @Override
+                                        public void onProgress(@NonNull @NotNull UploadTask.TaskSnapshot snapshot) {
+                                            double percent = (100.00 * snapshot.getBytesTransferred() / snapshot.getTotalByteCount());
+                                            pd.setMessage("Progress: " + (int) percent + "%");
+                                        }
                                     });
                         } else {
-                            setHasOptionsMenu(true);
+                            editOptions.setVisibility(View.VISIBLE);
+//                            setHasOptionsMenu(true);
                         }
                     });
 
@@ -218,7 +241,8 @@ public class ProfileFragment extends Fragment {
 
                     spinner.setVisibility(View.GONE);
                     allLayouts.setVisibility(View.VISIBLE);
-                    setHasOptionsMenu(true);
+//                    editOptions.setVisibility(View.VISIBLE);
+//                    setHasOptionsMenu(true);
                 }
             }
 
@@ -228,30 +252,50 @@ public class ProfileFragment extends Fragment {
             }
         };
         mUserReference.addListenerForSingleValueEvent(mUserListener);
-        mUserDogsReference = FirebaseDatabase.getInstance()
+        mUserPetsReference = FirebaseDatabase.getInstance()
                 .getReference()
                 .child("Users")
                 .child(userID)
-                .child("dogs");
+                .child("pets");
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        ((AppCompatActivity) requireActivity()).getSupportActionBar().show();
+//        ((AppCompatActivity) requireActivity()).getSupportActionBar().show();
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        ((AppCompatActivity) requireActivity()).getSupportActionBar().hide();
-        myDogAdapter.stopListening();
+//        ((AppCompatActivity) requireActivity()).getSupportActionBar().hide();
+        myPetAdapter.stopListening();
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        myDogAdapter.startListening();
+        myPetAdapter.startListening();
+    }
+
+    public void showPopup(View v) {
+        PopupMenu popup = new PopupMenu(requireContext(), v);
+        MenuInflater inflater = popup.getMenuInflater();
+        inflater.inflate(R.menu.profile_menu, popup.getMenu());
+        popup.setOnMenuItemClickListener(menuItem -> {
+            int option = menuItem.getItemId();
+            if (option == R.id.editPicture) {
+                editPicture();
+            } else if (option == R.id.editPhone) {
+                editPhone();
+            } else if (option == R.id.editUsername) {
+                editUsername();
+            } else if (option == R.id.editPassword) {
+                editPassword();
+            }
+            return false;
+        });
+        popup.show();
     }
 
     @Override
@@ -259,8 +303,14 @@ public class ProfileFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_profile, container, false);
+        editOptions = v.findViewById(R.id.editOptions);
+        if (isUser) {
+            editOptions.setVisibility(View.VISIBLE);
+            editOptions.setOnClickListener(this::showPopup);
+        }
+
         topBar = v.findViewById(R.id.topBar);
-        LinearLayout myDogsLayout = v.findViewById(R.id.myDogsLayout);
+        LinearLayout myPetsLayout = v.findViewById(R.id.myPetsLayout);
         Button resendButton = v.findViewById(R.id.resendButton);
         spinner = v.findViewById(R.id.spinner);
         allLayouts = v.findViewById(R.id.allLayouts);
@@ -269,13 +319,13 @@ public class ProfileFragment extends Fragment {
         emailView = v.findViewById(R.id.emailView);
         profileImage = v.findViewById(R.id.profileImage);
         LinearLayout logOutLayout = v.findViewById(R.id.logOutLayout);
-        RecyclerView myDogList = v.findViewById(R.id.myDogList);
-        myDogList.setLayoutManager(new LinearLayoutManager(requireContext()));
+        RecyclerView myPetList = v.findViewById(R.id.myPetList);
+        myPetList.setLayoutManager(new LinearLayoutManager(requireContext()));
         FirebaseRecyclerOptions<String> options = new FirebaseRecyclerOptions.Builder<String>()
-                .setQuery(mUserDogsReference, String.class)
+                .setQuery(mUserPetsReference, String.class)
                 .build();
-        myDogAdapter = new MyDogAdapter(options, requireContext(), requireActivity(), isUser, lat, lng);
-        myDogList.setAdapter(myDogAdapter);
+        myPetAdapter = new MyPetAdapter(options, requireContext(), requireActivity(), isUser, lat, lng);
+        myPetList.setAdapter(myPetAdapter);
         Button logOutButton = v.findViewById(R.id.logOutButton);
         if (isUser)
             logOutButton.setOnClickListener(view -> {
@@ -288,7 +338,7 @@ public class ProfileFragment extends Fragment {
         if (mAuth.getCurrentUser() != null && isUser) {
             if (!mAuth.getCurrentUser().isEmailVerified()) {
                 topBar.setVisibility(View.VISIBLE);
-                myDogsLayout.setVisibility(View.GONE);
+                myPetsLayout.setVisibility(View.GONE);
                 resendButton.setOnClickListener(view -> mAuth.getCurrentUser().sendEmailVerification()
                         .addOnSuccessListener(aVoid -> {
                             topBar.setVisibility(View.GONE);
@@ -304,27 +354,27 @@ public class ProfileFragment extends Fragment {
         return v;
     }
 
-    @Override
-    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
-        if (isUser)
-            requireActivity().getMenuInflater().inflate(R.menu.profile_menu, menu);
-        super.onCreateOptionsMenu(menu, inflater);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        int option = item.getItemId();
-        if (option == R.id.editPicture) {
-            editPicture();
-        } else if (option == R.id.editPhone) {
-            editPhone();
-        } else if (option == R.id.editUsername) {
-            editUsername();
-        } else if (option == R.id.editPassword) {
-            editPassword();
-        }
-        return super.onOptionsItemSelected(item);
-    }
+//    @Override
+//    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+//        if (isUser)
+//            requireActivity().getMenuInflater().inflate(R.menu.profile_menu, menu);
+//        super.onCreateOptionsMenu(menu, inflater);
+//    }
+//
+//    @Override
+//    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+//        int option = item.getItemId();
+//        if (option == R.id.editPicture) {
+//            editPicture();
+//        } else if (option == R.id.editPhone) {
+//            editPhone();
+//        } else if (option == R.id.editUsername) {
+//            editUsername();
+//        } else if (option == R.id.editPassword) {
+//            editPassword();
+//        }
+//        return super.onOptionsItemSelected(item);
+//    }
 
     private void editUsername() {
         AlertDialog usernameBuilder = new MaterialAlertDialogBuilder(requireContext())
@@ -466,7 +516,8 @@ public class ProfileFragment extends Fragment {
         Intent intent = new Intent();
         intent.setType("image/*");
         intent.setAction(Intent.ACTION_GET_CONTENT);
-        setHasOptionsMenu(false);
+        editOptions.setVisibility(View.INVISIBLE);
+//        setHasOptionsMenu(false);
         startImageIntent.launch(intent);
     }
 
@@ -537,7 +588,7 @@ public class ProfileFragment extends Fragment {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        myDogAdapter.cleanupListeners();
+        myPetAdapter.cleanupListeners();
         if (mUsersListener != null)
             mUsersReference.removeEventListener(mUsersListener);
         if (mUserListener != null)
